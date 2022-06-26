@@ -3,33 +3,107 @@
 // See the LICENSE file in the project root for more information.
 
 using FluentAssertions;
-using JsonPact;
 using JsonPact.NewtonSoft;
 
 namespace JsonPact.Tests;
 
-[JsonPact]
-public record JsonRecord(
-    string RequiredValue,
-    string? Nullable,
-    string Defaulted = "default",
-    string? NullableDefault = null
-);
-
 public class JsonPactTests {
 
-    [Fact]
-    public void Required_And_Defaulted_Values_Are_Populated() {
-        var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
+    [Theory]
+    [InlineData(JsonPactCase.Snake)]
+    [InlineData(JsonPactCase.Camel)]
+    [InlineData(JsonPactCase.Kebab)]
+    public void Required_And_Defaulted_Values_Are_Populated(JsonPactCase casing) {
+        var populated = new[] { "required_value", "defaulted" };
+        var ignored = new[] { "nullable_default", "nullable" };
 
-        var data = new JsonRecord(
-            RequiredValue: "required",
-            Nullable: null
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonRecord(RequiredValue: "required", Nullable: null)
         );
+
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonRecordDTO { RequiredValue = "required", Nullable = null }
+        );
+
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonClass { RequiredValue = "required", Nullable = null }
+        );
+
+    }
+
+    [Theory]
+    [InlineData(JsonPactCase.Snake)]
+    [InlineData(JsonPactCase.Kebab)]
+    [InlineData(JsonPactCase.Camel)]
+    public void Objects_Are_Serialized_With_Correct_Casing(JsonPactCase casing) {
+        var populated = new[] { "required_value", "nullable_default", "defaulted" };
+        var ignored = new[] { @"""nullable""" };
+
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonRecord(
+                RequiredValue: "required",
+                Nullable: null,
+                NullableDefault: "nullable default"
+            )
+        );
+
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonRecordDTO {
+                RequiredValue = "required",
+                Nullable = null,
+                NullableDefault = "nullable default"
+            }
+        );
+
+        AssertRequiredAndDefaults(
+            casing,
+            populated,
+            ignored,
+            new JsonClass {
+                RequiredValue = "required",
+                Nullable = null,
+                NullableDefault = "nullable default"
+            }
+        );
+    }
+
+    private void AssertRequiredAndDefaults<T>(
+        JsonPactCase casing,
+        string[] populate,
+        string[] ignore,
+        T data
+    ) where T : notnull {
+        var pact = JsonPacts.Default(casing).IntoJsonPact();
 
         var json = pact.Serialize(data);
 
-        json.Should().Be(@$"{{""required_value"":""{data.RequiredValue}"",""defaulted"":""{data.Defaulted}""}}");
+        json.Should().Be(data.IntoJson(casing));
+
+        var populated = populate
+            .Select(key => json.Contains(key.IntoCasedStr(casing)))
+            .All(item => item == true);
+
+        var ignored = ignore
+            .Select(key => json.Contains(key.IntoCasedStr(casing)))
+            .All(item => item == false);
+
+        populated.Should().Be(true);
+        ignored.Should().Be(true);
     }
 
     [Theory]
@@ -49,29 +123,9 @@ public class JsonPactTests {
     [InlineData(JsonPactCase.Camel, @"{ ""required_value"": ""required"" }")]
     [InlineData(JsonPactCase.Kebab, @"{ ""required_value"": ""required"" }")]
     public void Missing_Required_Prop_On_Deserialize_Throws(JsonPactCase casing, string? json) {
-        var pact = JsonPacts.Default(casing).IntoJsonPact();
-
-        var act = () => pact.Deserialize<JsonRecord>(json!);
-
-        act.Should().Throw<JsonPactDecodeException>();
-    }
-
-    [Theory]
-    [InlineData(JsonPactCase.Snake, "required_value", "nullable_default")]
-    [InlineData(JsonPactCase.Kebab, "required-value", "nullable-default")]
-    [InlineData(JsonPactCase.Camel, "requiredValue", "nullableDefault")]
-    public void Objects_Are_Serialized_With_Correct_Casing(JsonPactCase casing, string requiredKey, string nullableKey) {
-        var pact = JsonPacts.Default(casing).IntoJsonPact();
-
-        var data = new JsonRecord(
-            RequiredValue: "required",
-            Nullable: null,
-            NullableDefault: "nullable default"
-        );
-
-        var json = pact.Serialize(data);
-
-        json.Should().Be(@$"{{""{requiredKey}"":""{data.RequiredValue}"",""defaulted"":""{data.Defaulted}"",""{nullableKey}"":""{data.NullableDefault}""}}");
+        AssertEncodeError<JsonRecord>(json, casing);
+        AssertEncodeError<JsonRecordDTO>(json, casing);
+        AssertEncodeError<JsonClass>(json, casing);
     }
 
     [Theory]
@@ -80,16 +134,28 @@ public class JsonPactTests {
     [InlineData(" ")]
     [InlineData("()")]
     public void On_Deserialize_With_Invalid_Json_Results_In_Decode_Error(string? json) {
-        var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
-
-        var act = () => pact.Deserialize<JsonRecord>(json!);
-
-        act.Should().Throw<JsonPactDecodeException>();
+        AssertDecodeError<JsonRecord>(json);
+        AssertDecodeError<JsonRecordDTO>(json);
+        AssertDecodeError<JsonClass>(json);
     }
 
     [Fact]
     public void On_Serialize_With_Invalid_Json_An_Json_Encode_Error_Is_Thrown() {
-        var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
+        AssertEncodeError<JsonRecord>(null!);
+        AssertEncodeError<JsonRecordDTO>(null!);
+        AssertEncodeError<JsonClass>(null!);
+    }
+
+    private void AssertDecodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {
+        var pact = JsonPacts.Default(casing).IntoJsonPact();
+
+        var act = () => pact.Deserialize<T>(json!);
+
+        act.Should().Throw<JsonPactDecodeException>();
+    }
+
+    private void AssertEncodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {
+        var pact = JsonPacts.Default(casing).IntoJsonPact();
 
         var act = () => pact.Serialize<JsonRecord>(null!);
 
