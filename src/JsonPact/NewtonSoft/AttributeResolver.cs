@@ -18,7 +18,8 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
     protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
         var properties = base.CreateProperties(type, memberSerialization);
         var defaults = type.GetConstructor(Type.EmptyTypes) != null ? Activator.CreateInstance(type) : null;
-        var merged = defaults switch { { } defaulted => MergeAllDefaults(properties, type, defaulted),
+        var merged = defaults switch {
+            object { } defaulted => MergeAllDefaults(properties, type, defaulted),
             null => MergeConstructorDefaults(properties, type)
         };
 
@@ -34,8 +35,9 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
                 val => val
             );
 
-        return parameters switch { { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
-            _ => props
+        return parameters switch {
+            Dictionary<string, ParameterInfo> { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
+            null => props,
         };
     }
 
@@ -45,7 +47,11 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         var info = args[prop.UnderlyingName];
 
         prop.NullValueHandling = NullValueHandling.Ignore;
-        prop.Required = info switch { { HasDefaultValue: false } when IsNullable(prop.PropertyType, info.CustomAttributes) => Required.Default, { HasDefaultValue: false } => Required.Always,
+        prop.Required = info switch {
+            ParameterInfo { HasDefaultValue: false } when
+                IsNullable(prop.PropertyType) ||
+                IsNullable(info.CustomAttributes) => Required.Default,
+            ParameterInfo { HasDefaultValue: false } => Required.Always,
             _ => Required.Default
         };
 
@@ -62,11 +68,11 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
             val => val
         );
 
-        return members switch { { } fields => props.Select(prop => MergePropertyDefaults(prop, fields, defaulted)),
+        return members switch {
+            Dictionary<string, MemberInfo> { } fields => props.Select(prop => MergePropertyDefaults(prop, fields, defaulted)),
             null => props
         };
     }
-
 
     private static JsonProperty MergePropertyDefaults(JsonProperty prop, Dictionary<string, MemberInfo> fields, object defaulted) {
         if (prop.UnderlyingName is null) return prop;
@@ -79,7 +85,11 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         prop.NullValueHandling = NullValueHandling.Ignore;
         prop.DefaultValue = defaultedValue;
         prop.Required = defaultedValue switch { { } => Required.Default,
-            null when IsNullable(prop.PropertyType, info.CustomAttributes) => Required.Default,
+            null when
+                IsNullable(prop.PropertyType) ||
+                IsNullable(info.CustomAttributes) ||
+                IsNullable(info.SetMethod?.CustomAttributes)
+            => Required.Default,
             null => Required.Always
         };
 
@@ -91,7 +101,16 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         return contract;
     }
 
-    private static bool IsNullable(Type? type, IEnumerable<CustomAttributeData> attributes) =>
-        (type != null && Nullable.GetUnderlyingType(type) != null) ||
-        attributes.Any(attr => attr.AttributeType.FullName == "System.Runtime.CompilerServices.NullableAttribute");
+    public static bool IsNullable(Type? type) =>
+        type != null && Nullable.GetUnderlyingType(type) != null;
+
+    private static bool IsNullable(IEnumerable<CustomAttributeData>? attributes) {
+        if (attributes is null || attributes.Count() == 0) return false;
+
+        return attributes.Any(attr => attr.AttributeType.FullName switch {
+            "System.Runtime.CompilerServices.NullableAttribute" => true,
+            "System.Runtime.CompilerServices.CompilerGeneratedAttribute" => IsNullable(attr.AttributeType.BaseType?.CustomAttributes),
+            _ => false
+        });
+    }
 }

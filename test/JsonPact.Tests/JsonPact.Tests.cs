@@ -17,27 +17,43 @@ public class JsonPactTests {
         var populated = new[] { "required_value", "defaulted" };
         var ignored = new[] { "nullable_default", "nullable" };
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
             new JsonRecord(RequiredValue: "required", Nullable: null)
         );
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
             new JsonRecordDTO { RequiredValue = "required", Nullable = null }
         );
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
             new JsonClass { RequiredValue = "required", Nullable = null }
         );
+    }
 
+    [Fact]
+    public void All_Optional_Property_DTOs_Are_Not_Affected_By_Required_Check() {
+        var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
+
+        var nullable = pact.Deserialize<NullableOnly>(@"{""extra_prop"":""value""}");
+        var optional = pact.Deserialize<DefaultedOnly>(@"{""extra_prop"":""value""}");
+        var optionalAndDefaulted = pact.Deserialize<OptionalAndDefaultedOnly>(@"{""extra_prop"":""value""}");
+
+        nullable.Should().Be(new NullableOnly { Nullable = null });
+        optional.Should().Be(new DefaultedOnly { Defaulted = "default" });
+        optionalAndDefaulted.Should().Be(new OptionalAndDefaultedOnly {
+            Defaulted = "default",
+            Nullable = null,
+            NullableDefault = null
+        });
     }
 
     [Theory]
@@ -48,7 +64,7 @@ public class JsonPactTests {
         var populated = new[] { "required_value", "nullable_default", "defaulted" };
         var ignored = new[] { @"""nullable""" };
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
@@ -59,7 +75,7 @@ public class JsonPactTests {
             )
         );
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
@@ -70,7 +86,7 @@ public class JsonPactTests {
             }
         );
 
-        AssertRequiredAndDefaults(
+        AssertSerializedRequiredAndDefaults(
             casing,
             populated,
             ignored,
@@ -82,7 +98,7 @@ public class JsonPactTests {
         );
     }
 
-    private void AssertRequiredAndDefaults<T>(
+    private void AssertSerializedRequiredAndDefaults<T>(
         JsonPactCase casing,
         string[] populate,
         string[] ignore,

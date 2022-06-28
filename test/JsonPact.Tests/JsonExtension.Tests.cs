@@ -1,8 +1,5 @@
-﻿using System.Reflection;
-using System.Text.RegularExpressions;
-using FluentAssertions;
+﻿using FluentAssertions;
 using JsonPact;
-using JsonPact.Tests;
 
 public class JsonExtensionTests {
 

@@ -23,3 +23,20 @@ public record JsonRecord(
     string Defaulted = "default",
     string? NullableDefault = null
 );
+
+[JsonPact]
+public record OptionalAndDefaultedOnly {
+    public string? Nullable { get; set; }
+    public string Defaulted { get; set; } = "default";
+    public string? NullableDefault { get; set; } = null;
+}
+
+[JsonPact]
+public record NullableOnly {
+    public string? Nullable { get; init; }
+}
+
+[JsonPact]
+public record DefaultedOnly {
+    public string Defaulted { get; set; } = "default";
+}
