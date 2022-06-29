@@ -1,5 +1,7 @@
 ﻿using JsonPact.NewtonSoft;
 
+// Different types of schemas some with & without required, optional and nullable fields for testing.
+
 [JsonPact]
 public record JsonRecord(
     string RequiredValue,
@@ -53,3 +55,5 @@ public record DefaultedRecord(string Defaulted = "default");
 public record DefaultedDTO {
     public string Defaulted { get; set; } = "default";
 }
+
+// TODO: Nested structure with different casing.
