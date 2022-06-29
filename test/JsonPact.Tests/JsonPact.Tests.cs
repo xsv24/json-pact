@@ -41,15 +41,35 @@ public class JsonPactTests {
 
     [Fact]
     public void All_Optional_Property_DTOs_Are_Not_Affected_By_Required_Check() {
+        // Arrange
         var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
 
-        var nullable = pact.Deserialize<NullableOnly>(@"{""extra_prop"":""value""}");
-        var optional = pact.Deserialize<DefaultedOnly>(@"{""extra_prop"":""value""}");
-        var optionalAndDefaulted = pact.Deserialize<OptionalAndDefaultedOnly>(@"{""extra_prop"":""value""}");
+        var json = @"{""extra_prop"":""value""}";
 
-        nullable.Should().Be(new NullableOnly { Nullable = null });
-        optional.Should().Be(new DefaultedOnly { Defaulted = "default" });
-        optionalAndDefaulted.Should().Be(new OptionalAndDefaultedOnly {
+        // Act
+        var js = pact.Serialize(DBNull.Value);
+        var nullableRecord = pact.Deserialize<NullableRecord>(json);
+        var nullableDTO = pact.Deserialize<NullableDTO>(json);
+
+        var optionalRecord = pact.Deserialize<DefaultedRecord>(json);
+        var optionalDTO = pact.Deserialize<DefaultedDTO>(json);
+
+        var optionalAndDefaultedRecord = pact.Deserialize<OptionalAndDefaultedRecord>(json);
+        var optionalAndDefaultedDTO = pact.Deserialize<OptionalAndDefaultedDTO>(json);
+
+        // Assert
+        nullableRecord.Should().Be(new NullableRecord(Nullable: null));
+        nullableDTO.Should().Be(new NullableDTO { Nullable = null });
+
+        optionalRecord.Should().Be(new DefaultedRecord(Defaulted: "default"));
+        optionalDTO.Should().Be(new DefaultedDTO { Defaulted = "default" });
+
+        optionalAndDefaultedRecord.Should().Be(new OptionalAndDefaultedRecord(
+            Defaulted: "default",
+            Nullable: null,
+            NullableDefault: null
+        ));
+        optionalAndDefaultedDTO.Should().Be(new OptionalAndDefaultedDTO {
             Defaulted = "default",
             Nullable = null,
             NullableDefault = null

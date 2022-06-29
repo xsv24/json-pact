@@ -47,15 +47,17 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         var info = args[prop.UnderlyingName];
 
         prop.NullValueHandling = NullValueHandling.Ignore;
+
         prop.Required = info switch {
             ParameterInfo { HasDefaultValue: false } when
                 IsNullable(prop.PropertyType) ||
-                IsNullable(info.CustomAttributes) => Required.Default,
+                IsNullable(info.CustomAttributes) ||
+                IsNullable(info.ParameterType.CustomAttributes) => Required.Default,
             ParameterInfo { HasDefaultValue: false } => Required.Always,
             _ => Required.Default
         };
 
-        if (info.HasDefaultValue) return prop;
+        if (!info.HasDefaultValue) return prop;
 
         prop.DefaultValue = info.DefaultValue;
 
