@@ -17,11 +17,15 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
+        
     - name: lint
       run: dotnet format --verify-no-changes
+      
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+      
+    - name: build
       run: dotnet build --no-restore
-    - name: Test
+      
+    - name: test
       run: dotnet test --no-build --verbosity normal
