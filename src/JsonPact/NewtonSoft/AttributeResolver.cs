@@ -17,14 +17,26 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
 
     protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
         var properties = base.CreateProperties(type, memberSerialization);
+
+        // Create an instance of an object if it has no or an empty constructor.
         var defaults = type.GetConstructor(Type.EmptyTypes) != null ? Activator.CreateInstance(type) : null;
-        var merged = defaults switch { { } defaulted => MergeAllDefaults(properties, type, defaulted),
+
+        // Set up json properties based on wether the object is a plain DTO with an empty constructor. 
+        var merged = defaults switch {
+            object { } defaulted => MergePropertyDefaults(properties, type, defaulted),
             null => MergeConstructorDefaults(properties, type)
         };
 
         return merged.ToList() ?? new List<JsonProperty>();
     }
 
+    /// <summary>
+    /// Attempt to find default values within the constructors and check
+    /// if the '?' nullable operator is in use to mark if a property is required.
+    /// </summary>
+    /// <param name="props">Original json property values.</param>
+    /// <param name="type">Object type used to serialize / deserialize json.</param>
+    /// <returns>Updated list of <see cref="JsonProperty">json properties</see> with updated default value and required status.</returns>
     private IEnumerable<JsonProperty> MergeConstructorDefaults(IEnumerable<JsonProperty> props, Type type) {
         var parameters = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public)
             .FirstOrDefault() // TODO: Make this better could throw an error or have a constructor attribute.
@@ -34,52 +46,71 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
                 val => val
             );
 
-        return parameters switch { { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
-            _ => props
+        return parameters switch {
+            Dictionary<string, ParameterInfo> { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
+            null => props,
         };
     }
 
     private static JsonProperty MergeConstructorDefaultParams(JsonProperty prop, Dictionary<string, ParameterInfo> args) {
-        if (prop.UnderlyingName is null) return prop;
+        var info = args.GetValueOrDefault(prop.UnderlyingName!);
 
-        var info = args[prop.UnderlyingName];
+        if (info is null) return prop;
 
         prop.NullValueHandling = NullValueHandling.Ignore;
-        prop.Required = info switch { { HasDefaultValue: false } when IsNullable(prop.PropertyType, info.CustomAttributes) => Required.Default, { HasDefaultValue: false } => Required.Always,
+
+        prop.Required = info switch {
+            ParameterInfo { HasDefaultValue: false } when
+                IsNullable(prop.PropertyType) ||
+                IsNullable(info.CustomAttributes) ||
+                IsNullable(info.ParameterType.CustomAttributes) => Required.Default,
+            ParameterInfo { HasDefaultValue: false } => Required.Always,
             _ => Required.Default
         };
 
-        if (info.HasDefaultValue) return prop;
+        if (!info.HasDefaultValue) return prop;
 
         prop.DefaultValue = info.DefaultValue;
 
         return prop;
     }
 
-    private IEnumerable<JsonProperty> MergeAllDefaults(IEnumerable<JsonProperty> props, Type type, object defaulted) {
+    /// <summary>
+    /// Attempt to find defaulted property values and check if the '?' nullable operator 
+    /// is in use to mark the property as required or not.
+    /// </summary>
+    /// <param name="props">Original json property values.</param>
+    /// <param name="type">Object type used to serialize / deserialize json.</param>
+    /// <param name="defaulted">Instance of type created from an empty or non-existent constructor i.e DTO.</param> 
+    /// <returns>Updated list of <see cref="JsonProperty">json properties</see> with updated default value and required status.</returns>
+    private IEnumerable<JsonProperty> MergePropertyDefaults(IEnumerable<JsonProperty> props, Type type, object defaulted) {
         var members = GetSerializableMembers(type).ToDictionary(
             val => val.Name,
             val => val
         );
 
-        return members switch { { } fields => props.Select(prop => MergePropertyDefaults(prop, fields, defaulted)),
+        return members switch {
+            Dictionary<string, MemberInfo> { } fields => props.Select(prop => MergePropertyDefaults(prop, fields, defaulted)),
             null => props
         };
     }
 
-
     private static JsonProperty MergePropertyDefaults(JsonProperty prop, Dictionary<string, MemberInfo> fields, object defaulted) {
-        if (prop.UnderlyingName is null) return prop;
+        var info = (PropertyInfo?)fields.GetValueOrDefault(prop.UnderlyingName!);
 
-        var member = fields[prop.UnderlyingName];
-        var info = (PropertyInfo)member;
+        if (info is null) return prop;
 
         var defaultedValue = info.GetValue(defaulted);
 
         prop.NullValueHandling = NullValueHandling.Ignore;
         prop.DefaultValue = defaultedValue;
-        prop.Required = defaultedValue switch { { } => Required.Default,
-            null when IsNullable(prop.PropertyType, info.CustomAttributes) => Required.Default,
+        prop.Required = defaultedValue switch {
+            object { } => Required.Default,
+            null when
+                IsNullable(prop.PropertyType) ||
+                IsNullable(info.CustomAttributes) ||
+                IsNullable(info.SetMethod?.CustomAttributes)
+            => Required.Default,
             null => Required.Always
         };
 
@@ -91,7 +122,26 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         return contract;
     }
 
-    private static bool IsNullable(Type? type, IEnumerable<CustomAttributeData> attributes) =>
-        (type != null && Nullable.GetUnderlyingType(type) != null) ||
-        attributes.Any(attr => attr.AttributeType.FullName == "System.Runtime.CompilerServices.NullableAttribute");
+    /// <summary>
+    /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
+    /// </summary>
+    /// <param name="type">Type of a property obtained through reflection.</param>
+    /// <returns>true if the underlying type is nullable otherwise false.</returns>
+    public static bool IsNullable(Type? type) =>
+        type != null && Nullable.GetUnderlyingType(type) != null;
+
+    /// <summary>
+    /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
+    /// </summary>
+    /// <param name="attributes">These are the extensions added on a property which can be obtained through reflection.</param>
+    /// <returns>true if attributes contains a 'NullableAttribute' otherwise false.</returns>
+    private static bool IsNullable(IEnumerable<CustomAttributeData>? attributes) {
+        if (attributes is null || attributes.Count() == 0) return false;
+
+        return attributes.Any(attr => attr.AttributeType.FullName switch {
+            "System.Runtime.CompilerServices.NullableAttribute" => true,
+            "System.Runtime.CompilerServices.CompilerGeneratedAttribute" => IsNullable(attr.AttributeType.BaseType?.CustomAttributes),
+            _ => false
+        });
+    }
 }
