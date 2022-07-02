@@ -1,4 +1,5 @@
-﻿using JsonPact.NewtonSoft;
+﻿using JsonPact;
+using JsonPact.NewtonSoft;
 
 // Different types of schemas some with & without required, optional and nullable fields for testing.
 
@@ -56,4 +57,11 @@ public record DefaultedDTO {
     public string Defaulted { get; set; } = "default";
 }
 
-// TODO: Nested structure with different casing.
+[JsonPact(JsonPactCase.Camel)]
+public record CamelCase<T>(T RequiredValue) where T : class;
+
+[JsonPact(JsonPactCase.Snake)]
+public record SnakeCase<T>(T RequiredValue) where T : class;
+
+[JsonPact(JsonPactCase.Kebab)]
+public record KebabCase<T>(T RequiredValue) where T : class;

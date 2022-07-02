@@ -40,10 +40,25 @@ public class JsonPactTests {
     }
 
     [Fact]
+    public void JsonPact_Casing_Attribute_Overrides_Default_Casing() {
+        var pact = JsonPacts.Default(JsonPactCase.Camel).IntoJsonPact();
+
+        var origin = new SnakeCase<CamelCase<string>>(
+            RequiredValue: new CamelCase<string>("hello")
+        );
+
+        var json = pact.Serialize(origin);
+        var obj = pact.Deserialize<SnakeCase<CamelCase<string>>>(json);
+
+        json.Should().Be(@$"{{""required_value"":{{""requiredValue"":""hello""}}}}");
+        obj.Should().Be(origin);
+
+    }
+
+    [Fact]
     public void All_Optional_Property_DTOs_Are_Not_Affected_By_Required_Check() {
         // Arrange
         var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
-
         var json = @"{""extra_prop"":""value""}";
 
         // Act
