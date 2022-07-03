@@ -51,10 +51,11 @@ public static class JsonPacts {
         }
     };
 
-    public static NamingStrategy IntoNamingStrategy(this JsonPactCase casing) => casing switch {
+    public static NamingStrategy? IntoNamingStrategy(this JsonPactCase casing) => casing switch {
         JsonPactCase.Snake => new SnakeCaseNamingStrategy(),
         JsonPactCase.Camel => new CamelCaseNamingStrategy(),
         JsonPactCase.Kebab => new KebabCaseNamingStrategy(),
+        JsonPactCase.Pascal => null, // Is used by default.
         _ => throw new ArgumentOutOfRangeException(nameof(casing), $"Unsupported casing type {casing} for 'Newtonsoft' settings.")
     };
 }
