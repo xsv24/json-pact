@@ -41,10 +41,7 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         var parameters = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public)
             .FirstOrDefault() // TODO: Make this better could throw an error or have a constructor attribute.
             ?.GetParameters()
-            ?.ToDictionary(
-                val => val.Name!,
-                val => val
-            );
+            ?.ToDictionary(val => val.Name!, val => val);
 
         return parameters switch {
             Dictionary<string, ParameterInfo> { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
@@ -84,10 +81,8 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
     /// <param name="defaulted">Instance of type created from an empty or non-existent constructor i.e DTO.</param> 
     /// <returns>Updated list of <see cref="JsonProperty">json properties</see> with updated default value and required status.</returns>
     private IEnumerable<JsonProperty> MergePropertyDefaults(IEnumerable<JsonProperty> props, Type type, object defaulted) {
-        var members = GetSerializableMembers(type).ToDictionary(
-            val => val.Name,
-            val => val
-        );
+        var members = GetSerializableMembers(type)
+            .ToDictionary(val => val.Name, val => val);
 
         return members switch {
             Dictionary<string, MemberInfo> { } fields => props.Select(prop => MergePropertyDefaults(prop, fields, defaulted)),

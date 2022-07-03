@@ -9,6 +9,8 @@ public enum JsonPactCase {
     Snake,
     /// <summary> 🐫 camelCase </summary>
     Camel,
+    /// <summary> 🅿️ PascalCase </summary>
+    Pascal,
     /// <summary> 🍖 kebab-case </summary>
     Kebab
 }

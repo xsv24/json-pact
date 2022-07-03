@@ -38,10 +38,21 @@ public static class JsonExtensions {
         return val.Substring(0, 1).ToLower() + val.Substring(1);
     }
 
+    public static string IntoPascalCase(this string value) {
+        var val = Regex.Replace(
+            value.Replace("-", "_"),
+            "_[a-z]",
+            match => $"{match}".TrimStart('_').Capitalize()
+        );
+
+        return val.Substring(0, 1).ToUpper() + val.Substring(1);
+    }
+
     public static string IntoCasedStr(this string value, JsonPactCase casing) => casing switch {
         JsonPactCase.Snake => IntoSnakeCase(value),
         JsonPactCase.Kebab => IntoKebabCase(value),
         JsonPactCase.Camel => IntoCamelCase(value),
+        JsonPactCase.Pascal => IntoPascalCase(value),
         _ => throw new ArgumentException("Unsupported casing")
     };
 

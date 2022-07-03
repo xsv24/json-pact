@@ -13,6 +13,7 @@ public class JsonPactTests {
     [InlineData(JsonPactCase.Snake)]
     [InlineData(JsonPactCase.Camel)]
     [InlineData(JsonPactCase.Kebab)]
+    [InlineData(JsonPactCase.Pascal)]
     public void Required_And_Defaulted_Values_Are_Populated(JsonPactCase casing) {
         var populated = new[] { "required_value", "defaulted" };
         var ignored = new[] { "nullable_default", "nullable" };
@@ -95,6 +96,7 @@ public class JsonPactTests {
     [InlineData(JsonPactCase.Snake)]
     [InlineData(JsonPactCase.Kebab)]
     [InlineData(JsonPactCase.Camel)]
+    [InlineData(JsonPactCase.Pascal)]
     public void Objects_Are_Serialized_With_Correct_Casing(JsonPactCase casing) {
         var populated = new[] { "required_value", "nullable_default", "defaulted" };
         var ignored = new[] { @"""nullable""" };
@@ -169,10 +171,12 @@ public class JsonPactTests {
     [InlineData(JsonPactCase.Snake, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
     [InlineData(JsonPactCase.Camel, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
     [InlineData(JsonPactCase.Kebab, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
+    [InlineData(JsonPactCase.Pascal, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
 
     [InlineData(JsonPactCase.Snake, @"{ ""requiredValue"": ""required"" }")]
     [InlineData(JsonPactCase.Camel, @"{ ""required_value"": ""required"" }")]
     [InlineData(JsonPactCase.Kebab, @"{ ""required_value"": ""required"" }")]
+    [InlineData(JsonPactCase.Pascal, @"{ ""required_value"": ""required"" }")]
     public void Missing_Required_Prop_On_Deserialize_Throws(JsonPactCase casing, string? json) {
         AssertEncodeError<JsonRecord>(json, casing);
         AssertEncodeError<JsonRecordDTO>(json, casing);

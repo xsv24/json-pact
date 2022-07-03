@@ -12,6 +12,6 @@ public sealed class JsonPactAttribute : JsonContainerAttribute {
     public JsonPactAttribute() { }
 
     public JsonPactAttribute(JsonPactCase casing) {
-        this.NamingStrategyType = casing.IntoNamingStrategy().GetType();
+        this.NamingStrategyType = casing.IntoNamingStrategy()?.GetType();
     }
 }
