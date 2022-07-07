@@ -31,7 +31,7 @@ public class JsonClass {
 public record OptionalAndDefaultedDTO {
     public string? Nullable { get; set; }
     public string Defaulted { get; set; } = "default";
-    public string? NullableDefault { get; set; } = null;
+    public string? NullableDefault { get; set; } = default;
 }
 
 [JsonPact]

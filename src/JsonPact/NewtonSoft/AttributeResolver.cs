@@ -41,7 +41,7 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         var parameters = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public)
             .FirstOrDefault() // TODO: Make this better could throw an error or have a constructor attribute.
             ?.GetParameters()
-            ?.ToDictionary(val => val.Name!, val => val);
+            .ToDictionary(val => val.Name!, val => val);
 
         return parameters switch {
             Dictionary<string, ParameterInfo> { } args => props.Select(prop => MergeConstructorDefaultParams(prop, args)),
@@ -58,9 +58,10 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
 
         prop.Required = info switch {
             ParameterInfo { HasDefaultValue: false } when
-                IsNullable(prop.PropertyType) ||
-                IsNullable(info.CustomAttributes) ||
-                IsNullable(info.ParameterType.CustomAttributes) => Required.Default,
+                prop.PropertyType.IsNullable() ||
+                info.CustomAttributes.IsNullable() ||
+                info.IsNullableContext()
+                => Required.Default,
             ParameterInfo { HasDefaultValue: false } => Required.Always,
             _ => Required.Default
         };
@@ -102,9 +103,10 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
         prop.Required = defaultedValue switch {
             object { } => Required.Default,
             null when
-                IsNullable(prop.PropertyType) ||
-                IsNullable(info.CustomAttributes) ||
-                IsNullable(info.SetMethod?.CustomAttributes)
+                prop.PropertyType.IsNullable() ||
+                info.CustomAttributes.IsNullable() ||
+                (info.SetMethod?.CustomAttributes).IsNullable() ||
+                info.IsNullableContext()
             => Required.Default,
             null => Required.Always
         };
@@ -115,28 +117,5 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
     private static JsonObjectContract AddObjectContractProperties(JsonObjectContract contract) {
         contract.ItemNullValueHandling = NullValueHandling.Ignore;
         return contract;
-    }
-
-    /// <summary>
-    /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
-    /// </summary>
-    /// <param name="type">Type of a property obtained through reflection.</param>
-    /// <returns>true if the underlying type is nullable otherwise false.</returns>
-    public static bool IsNullable(Type? type) =>
-        type != null && Nullable.GetUnderlyingType(type) != null;
-
-    /// <summary>
-    /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
-    /// </summary>
-    /// <param name="attributes">These are the extensions added on a property which can be obtained through reflection.</param>
-    /// <returns>true if attributes contains a 'NullableAttribute' otherwise false.</returns>
-    private static bool IsNullable(IEnumerable<CustomAttributeData>? attributes) {
-        if (attributes is null || attributes.Count() == 0) return false;
-
-        return attributes.Any(attr => attr.AttributeType.FullName switch {
-            "System.Runtime.CompilerServices.NullableAttribute" => true,
-            "System.Runtime.CompilerServices.CompilerGeneratedAttribute" => IsNullable(attr.AttributeType.BaseType?.CustomAttributes),
-            _ => false
-        });
     }
 }
