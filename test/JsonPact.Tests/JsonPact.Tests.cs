@@ -63,7 +63,6 @@ public class JsonPactTests {
         var json = @"{""extra_prop"":""value""}";
 
         // Act
-        var js = pact.Serialize(DBNull.Value);
         var nullableRecord = pact.Deserialize<NullableRecord>(json);
         var nullableDTO = pact.Deserialize<NullableDTO>(json);
 
@@ -178,9 +177,9 @@ public class JsonPactTests {
     [InlineData(JsonPactCase.Kebab, @"{ ""required_value"": ""required"" }")]
     [InlineData(JsonPactCase.Pascal, @"{ ""required_value"": ""required"" }")]
     public void Missing_Required_Prop_On_Deserialize_Throws(JsonPactCase casing, string? json) {
-        AssertEncodeError<JsonRecord>(json, casing);
-        AssertEncodeError<JsonRecordDTO>(json, casing);
-        AssertEncodeError<JsonClass>(json, casing);
+        AssertDecodeError<JsonRecord>(json, casing);
+        AssertDecodeError<JsonRecordDTO>(json, casing);
+        AssertDecodeError<JsonClass>(json, casing);
     }
 
     [Theory]
@@ -209,10 +208,10 @@ public class JsonPactTests {
         act.Should().Throw<JsonPactDecodeException>();
     }
 
-    private void AssertEncodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {
+    private void AssertEncodeError<T>(T? value, JsonPactCase casing = JsonPactCase.Snake) {
         var pact = JsonPacts.Default(casing).IntoJsonPact();
 
-        var act = () => pact.Serialize<JsonRecord>(null!);
+        var act = () => pact.Serialize<T>(value!);
 
         act.Should().Throw<JsonPactEncodeException>();
     }
