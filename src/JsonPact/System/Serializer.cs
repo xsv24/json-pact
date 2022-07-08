@@ -1,10 +1,8 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using JsonPact;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace JsonPact.System.Json;
+namespace JsonPact.System;
 
 public class Serializer : IJsonPact {
     private readonly JsonSerializerOptions _options;
@@ -38,7 +36,7 @@ public class Serializer : IJsonPact {
 public static class JsonPacts {
     public static JsonSerializerOptions Default(JsonPactCase casing) => new() {
         PropertyNameCaseInsensitive = false,
-        PropertyNamingPolicy = new NamingStrategy(casing),
+        PropertyNamingPolicy = new CasingPolicy(casing),
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new ObjectConvertor() }
     };
@@ -87,7 +85,4 @@ public static class JsonPacts {
     }
 
     public static IJsonPact IntoJsonPact(this JsonSerializerOptions options) => new Serializer(options);
-
-    public static JsonConverter<T> GetConverter<T>(this JsonSerializerOptions options)
-        => (JsonConverter<T>)options.GetConverter(typeof(T));
 }

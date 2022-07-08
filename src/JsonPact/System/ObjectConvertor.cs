@@ -1,13 +1,17 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using JsonPact.System.Json;
 
 namespace JsonPact.System;
 
 public class ObjectConvertor : JsonConverter<object?> {
-    private readonly HashSet<Type> _notAllowed = new() {
+    // ignore these types as they already have convertors and we only care about the base types.
+    private readonly HashSet<Type> _ignoreClass = new() {
         typeof(string),
-        typeof(byte[]),
+        typeof(byte[])
+    };
+
+    // ignore these types as they already have convertors and we only care about the base types.
+    private readonly HashSet<Type> _ignoreStruct = new() {
         typeof(DateTime),
         typeof(DateTimeOffset),
         typeof(Guid),
@@ -16,9 +20,9 @@ public class ObjectConvertor : JsonConverter<object?> {
     };
 
     public override bool CanConvert(Type objectType) => objectType switch {
-        Type { IsClass: true } when _notAllowed.All(type => type != objectType) => true,
-        Type { IsInterface: true } when _notAllowed.All(type => type != objectType) => true,
-        //_ when objectType.IsStruct() && NotAllowed.All(type => type != objectType) => true,
+        Type { IsClass: true } when _ignoreClass.All(type => type != objectType) => true,
+        Type { IsValueType: true, IsEnum: false, IsPrimitive: false } when _ignoreStruct.All(type => type != objectType) => true,
+        Type { IsInterface: true } => true,
         _ => false
     };
 
@@ -36,6 +40,26 @@ public class ObjectConvertor : JsonConverter<object?> {
         object? objectToWrite,
         JsonSerializerOptions options
     ) => JsonSerializer.Serialize(writer, objectToWrite, objectToWrite?.GetType()!, options.With());
+
+    private static object? Reader(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    ) {
+        var obj = JsonSerializer.Deserialize(ref reader, typeToConvert, options.With());
+
+        if (obj is null) return null;
+
+        // Create an instance of an object if it has no or an empty constructor.
+        var defaults = typeToConvert.GetConstructor(Type.EmptyTypes) != null
+            ? Activator.CreateInstance(typeToConvert)
+            : null;
+
+        return defaults switch {
+            object { } defaulted => ValidateProperties(typeToConvert, obj, defaulted),
+            null => ValidateParameters(obj)
+        };
+    }
 
     private static object ValidateParameters(object obj) {
         var type = obj.GetType();
@@ -61,24 +85,5 @@ public class ObjectConvertor : JsonConverter<object?> {
         });
 
         return obj;
-    }
-
-    private static object? Reader(
-        ref Utf8JsonReader reader,
-        Type typeToConvert,
-        JsonSerializerOptions options
-    ) {
-        var obj = JsonSerializer.Deserialize(ref reader, typeToConvert, options.With());
-        if (obj is null) return null;
-
-        // Create an instance of an object if it has no or an empty constructor.
-        var defaults = typeToConvert.GetConstructor(Type.EmptyTypes) != null
-            ? Activator.CreateInstance(typeToConvert)
-            : null;
-
-        return defaults switch {
-            object { } defaulted => ValidateProperties(typeToConvert, obj, defaulted),
-            null => ValidateParameters(obj)
-        };
     }
 }

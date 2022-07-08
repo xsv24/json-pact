@@ -3,10 +3,10 @@ using JsonPact;
 
 namespace JsonPact.System;
 
-public class NamingStrategy : JsonNamingPolicy {
+public class CasingPolicy : JsonNamingPolicy {
     private readonly JsonPactCase _casing;
 
-    public NamingStrategy(JsonPactCase casing) {
+    public CasingPolicy(JsonPactCase casing) {
         _casing = casing;
     }
 

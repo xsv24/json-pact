@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using JsonPact.System.Json;
+using JsonPact.System;
 
 namespace JsonPact.Tests;
 
