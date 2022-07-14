@@ -4,6 +4,11 @@ using System.Reflection;
 namespace JsonPact;
 
 internal static class Extensions {
+    public static void ForEach<T>(this IEnumerable<T> collection, Action<T> fn) {
+        foreach (var item in collection) {
+            fn(item);
+        }
+    }
 
     /// <summary>
     /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
@@ -46,15 +51,16 @@ internal static class Extensions {
         return (byte?)context?.ConstructorArguments[0].Value == 2;
     }
 
-    public static bool IsRequired(this PropertyInfo info, object defaulted, Type prop) {
+    public static bool IsRequired(this PropertyInfo info, Type prop, object? defaulted) {
         var defaultedValue = info.GetValue(defaulted);
 
         return defaultedValue switch {
             object { } => false,
             null when
-                info.PropertyType.IsNullable() ||
+                prop.IsNullable() ||
                 info.CustomAttributes.IsNullable() ||
-                (info.SetMethod?.CustomAttributes).IsNullable()
+                (info.SetMethod?.CustomAttributes).IsNullable() ||
+                info.IsNullableContext()
             => false,
             null => true
         };
@@ -64,7 +70,7 @@ internal static class Extensions {
         ParameterInfo { HasDefaultValue: false } when
             prop.IsNullable() ||
             info.CustomAttributes.IsNullable() ||
-            info.ParameterType.CustomAttributes.IsNullable() => false,
+            info.IsNullableContext() => false,
         ParameterInfo { HasDefaultValue: false } => true,
         _ => false
     };

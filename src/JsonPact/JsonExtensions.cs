@@ -1,41 +1,47 @@
-﻿
-using System.Text.RegularExpressions;
-using JsonPact;
+﻿using System.Text.RegularExpressions;
+
+namespace JsonPact;
 
 public static class JsonExtensions {
     public static string Capitalize(this string value) => value.Length switch {
-        > 0 => $"{value.Substring(0, 1).ToUpper()}{value.Substring(1)}",
+        > 0 => $"{value[..1].ToUpper()}{value[1..]}",
         _ => value
     };
 
     public static string IntoKebabCase(this string value) {
-        value = Regex.Replace(value.Replace("_", "-"), "[A-Z]", "-$0")
-            .ToLower();
+        value = Regex.Replace(
+           input: value.Replace("_", "-"),
+           pattern: "[A-Z]",
+            replacement: "-$0"
+        ).ToLower();
 
         return value.StartsWith("-") switch {
-            true => value.Substring(1),
+            true => value[1..],
             false => value
         };
     }
 
     public static string IntoSnakeCase(this string value) {
-        value = Regex.Replace(value.Replace("-", "_"), "[A-Z]", "_$0")
-            .ToLower();
+        value = Regex.Replace(
+            input: value.Replace("-", "_"),
+            pattern: "[A-Z]",
+            replacement: "_$0"
+        ).ToLower();
 
         return value.StartsWith("_") switch {
-            true => value.Substring(1),
+            true => value[1..],
             false => value
         };
     }
 
     public static string IntoCamelCase(this string value) {
         var val = Regex.Replace(
-            value.Replace("-", "_"),
-            "_[a-z]",
-            match => $"{match}".TrimStart('_').Capitalize()
+            input: value.Replace("-", "_"),
+            pattern: "_[a-z]",
+            evaluator: match => $"{match}".TrimStart('_').Capitalize()
         );
 
-        return val.Substring(0, 1).ToLower() + val.Substring(1);
+        return string.Concat(val[..1].ToLower(), val.AsSpan(1));
     }
 
     public static string IntoPascalCase(this string value) {
@@ -45,7 +51,7 @@ public static class JsonExtensions {
             match => $"{match}".TrimStart('_').Capitalize()
         );
 
-        return val.Substring(0, 1).ToUpper() + val.Substring(1);
+        return string.Concat(val[..1].ToUpper(), val.AsSpan(1));
     }
 
     public static string IntoCasedStr(this string value, JsonPactCase casing) => casing switch {

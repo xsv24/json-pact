@@ -37,7 +37,7 @@ public class JsonPactAttributesResolver : DefaultContractResolver {
     /// <param name="props">Original json property values.</param>
     /// <param name="type">Object type used to serialize / deserialize json.</param>
     /// <returns>Updated list of <see cref="JsonProperty">json properties</see> with updated default value and required status.</returns>
-    private IEnumerable<JsonProperty> MergeConstructorDefaults(IEnumerable<JsonProperty> props, Type type) {
+    private static IEnumerable<JsonProperty> MergeConstructorDefaults(IEnumerable<JsonProperty> props, Type type) {
         var parameters = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public)
             .FirstOrDefault() // TODO: Make this better could throw an error or have a constructor attribute.
             ?.GetParameters()
