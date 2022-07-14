@@ -170,9 +170,9 @@ public class JsonPactSystemTest {
     [InlineData(JsonPactCase.Kebab, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
     [InlineData(JsonPactCase.Pascal, @"{ ""nullable"": ""optional"", ""defaulted"": ""override"", ""nullable_default"": ""optional"" }")]
 
-    // [InlineData(JsonPactCase.Snake, @"{ ""requiredValue"": ""required"" }")]
-    // [InlineData(JsonPactCase.Camel, @"{ ""required_value"": ""required"" }")]
-    // [InlineData(JsonPactCase.Kebab, @"{ ""required_value"": ""required"" }")]
+    [InlineData(JsonPactCase.Snake, @"{ ""requiredValue"": ""required"" }")]
+    [InlineData(JsonPactCase.Camel, @"{ ""required_value"": ""required"" }")]
+    [InlineData(JsonPactCase.Kebab, @"{ ""required_value"": ""required"" }")]
     [InlineData(JsonPactCase.Pascal, @"{ ""required_value"": ""required"" }")]
     public void Missing_Required_Prop_On_Deserialize_Throws(JsonPactCase casing, string? json) {
         AssertDecodeError<JsonRecord>(json, casing);
