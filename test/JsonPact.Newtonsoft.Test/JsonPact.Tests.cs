@@ -5,7 +5,7 @@
 using FluentAssertions;
 using JsonPact.NewtonSoft;
 
-namespace JsonPact.Tests;
+namespace JsonPact.Newtonsoft.Test;
 
 public class JsonPactTests {
 
@@ -64,27 +64,27 @@ public class JsonPactTests {
 
         // Act
         var nullableRecord = pact.Deserialize<NullableRecord>(json);
-        var nullableDTO = pact.Deserialize<NullableDTO>(json);
+        var nullableDto = pact.Deserialize<NullableDTO>(json);
 
         var optionalRecord = pact.Deserialize<DefaultedRecord>(json);
-        var optionalDTO = pact.Deserialize<DefaultedDTO>(json);
+        var optionalDto = pact.Deserialize<DefaultedDTO>(json);
 
         var optionalAndDefaultedRecord = pact.Deserialize<OptionalAndDefaultedRecord>(json);
-        var optionalAndDefaultedDTO = pact.Deserialize<OptionalAndDefaultedDTO>(json);
+        var optionalAndDefaultedDto = pact.Deserialize<OptionalAndDefaultedDTO>(json) ?? throw new ArgumentNullException("pact.Deserialize<OptionalAndDefaultedDTO>(json)");
 
         // Assert
         nullableRecord.Should().Be(new NullableRecord(Nullable: null));
-        nullableDTO.Should().Be(new NullableDTO { Nullable = null });
+        nullableDto.Should().Be(new NullableDTO { Nullable = null });
 
         optionalRecord.Should().Be(new DefaultedRecord(Defaulted: "default"));
-        optionalDTO.Should().Be(new DefaultedDTO { Defaulted = "default" });
+        optionalDto.Should().Be(new DefaultedDTO { Defaulted = "default" });
 
         optionalAndDefaultedRecord.Should().Be(new OptionalAndDefaultedRecord(
             Defaulted: "default",
             Nullable: null,
             NullableDefault: null
         ));
-        optionalAndDefaultedDTO.Should().Be(new OptionalAndDefaultedDTO {
+        optionalAndDefaultedDto.Should().Be(new OptionalAndDefaultedDTO {
             Defaulted = "default",
             Nullable = null,
             NullableDefault = null
