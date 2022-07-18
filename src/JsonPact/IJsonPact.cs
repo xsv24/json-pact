@@ -26,12 +26,3 @@ public interface IJsonPact {
     /// <exception cref="JsonPactDecodeException">Occurs if deserialization fails.</exception> 
     T? Deserialize<T>(string json);
 }
-
-public static class JsonPactConvertor {
-    /// <summary>
-    /// Converts Newtonsoft settings into an <see cref="IJsonPact"/>.
-    /// </summary>
-    /// <param name="options">Newtonsoft settings to used to serialize and deserialize json.</param>
-    /// <returns><see cref="IJsonPact"/></returns>
-    public static IJsonPact IntoJsonPact(this JsonSerializerSettings options) => new NewtonSoft.Serializer(options);
-}

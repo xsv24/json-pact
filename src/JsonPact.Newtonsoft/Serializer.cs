@@ -40,7 +40,6 @@ public class Serializer : IJsonPact {
     }
 }
 
-
 public static class JsonPacts {
     public static JsonSerializerSettings Default(JsonPactCase casing) => new() {
         NullValueHandling = NullValueHandling.Ignore,
@@ -58,4 +57,11 @@ public static class JsonPacts {
         JsonPactCase.Pascal => null, // Is used by default.
         _ => throw new ArgumentOutOfRangeException(nameof(casing), $"Unsupported casing type {casing} for 'Newtonsoft' settings.")
     };
+    
+    /// <summary>
+    /// Converts Newtonsoft settings into an <see cref="IJsonPact"/>.
+    /// </summary>
+    /// <param name="options">Newtonsoft settings to used to serialize and deserialize json.</param>
+    /// <returns><see cref="IJsonPact"/></returns>
+    public static IJsonPact IntoJsonPact(this JsonSerializerSettings options) => new Serializer(options);
 }
