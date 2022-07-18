@@ -57,7 +57,7 @@ public static class JsonPacts {
         JsonPactCase.Pascal => null, // Is used by default.
         _ => throw new ArgumentOutOfRangeException(nameof(casing), $"Unsupported casing type {casing} for 'Newtonsoft' settings.")
     };
-    
+
     /// <summary>
     /// Converts Newtonsoft settings into an <see cref="IJsonPact"/>.
     /// </summary>
