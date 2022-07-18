@@ -5,13 +5,13 @@
 using System;
 using Newtonsoft.Json;
 
-namespace JsonPact.NewtonSoft {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
-    public sealed class JsonPactAttribute : JsonContainerAttribute {
-        public JsonPactAttribute() { }
+namespace JsonPact.NewtonSoft;
 
-        public JsonPactAttribute(JsonPactCase casing) {
-            this.NamingStrategyType = casing.IntoNamingStrategy()?.GetType();
-        }
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
+public sealed class JsonPactAttribute : JsonContainerAttribute {
+    public JsonPactAttribute() { }
+
+    public JsonPactAttribute(JsonPactCase casing) {
+        this.NamingStrategyType = casing.IntoNamingStrategy()?.GetType();
     }
 }
