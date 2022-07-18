@@ -1,7 +1,7 @@
 ﻿using JsonPact;
 using JsonPact.NewtonSoft;
 
-namespace JsonPact.Tests; 
+namespace JsonPact.Tests;
 // Different types of schemas some with & without required, optional and nullable fields for testing.
 
 #if NET5_0_OR_GREATER
