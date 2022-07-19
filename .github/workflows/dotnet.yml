@@ -28,8 +28,8 @@ jobs:
 #      with:
 #        dotnet-version: 6.0.x
 
-    - name: lint
-      run: dotnet format --verify-no-changes
+#    - name: lint
+#      run: dotnet format --verify-no-changes
       
     - name: Restore dependencies
       run: dotnet restore
