@@ -2,25 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace JsonPact;
+namespace JsonPact {
+    public interface IJsonPact {
 
-public interface IJsonPact {
+        /// <summary>
+        /// Attempts to serialize an object into a json formatted string.
+        /// </summary>
+        /// <param name="value">Value to be converted into json.</param>
+        /// <typeparam name="T">Type of <paramref name="value"/>.</typeparam>
+        /// <returns>Json string.</returns>
+        /// <exception cref="JsonPactEncodeException">Occurs if serialization fails.</exception> 
+        string Serialize<T>(T value);
 
-    /// <summary>
-    /// Attempts to serialize an object into a json formatted string.
-    /// </summary>
-    /// <param name="value">Value to be converted into json.</param>
-    /// <typeparam name="T">Type of <paramref name="value"/>.</typeparam>
-    /// <returns>Json string.</returns>
-    /// <exception cref="JsonPactEncodeException">Occurs if serialization fails.</exception> 
-    string Serialize<T>(T value);
-
-    /// <summary>
-    /// Attempts to deserialize a json string into an object of type <typeparamref name="T"/>.
-    /// </summary>
-    /// <param name="json">Json string to be converted.</param>
-    /// <typeparam name="T">Desired type that json will be parsed into.</typeparam>
-    /// <returns>Parse object of type <typeparamref name="T"/>.</returns>
-    /// <exception cref="JsonPactDecodeException">Occurs if deserialization fails.</exception> 
-    T? Deserialize<T>(string json);
+        /// <summary>
+        /// Attempts to deserialize a json string into an object of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="json">Json string to be converted.</param>
+        /// <typeparam name="T">Desired type that json will be parsed into.</typeparam>
+        /// <returns>Parse object of type <typeparamref name="T"/>.</returns>
+        /// <exception cref="JsonPactDecodeException">Occurs if deserialization fails.</exception> 
+        T? Deserialize<T>(string json);
+    }
 }

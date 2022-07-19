@@ -56,7 +56,8 @@ dotnet_style_collection_initializer = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
-csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_namespace_declarations = block_scoped:warning
+#csharp_style_namespace_declarations = file_scoped:warning
 
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
