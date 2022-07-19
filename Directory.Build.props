@@ -3,6 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <!--
     <LangVersion>10.0</LangVersion>
+    -->
   </PropertyGroup>
 </Project>
