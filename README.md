@@ -1,11 +1,35 @@
-![tests status](https://github.com/xsv24/json-pact/actions/workflows/dotnet.yml/badge.svg?event=push)
+![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![nuget](https://img.shields.io/badge/NuGet-004880?style=for-the-badge&logo=nuget&logoColor=white)
+
+[![tests status](https://github.com/xsv24/json-pact/actions/workflows/dotnet.yml/badge.svg?event=push)](https://github.com/xsv24/json-pact/actions?query=branch%3Amain+)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=xsv24_json-pact&metric=coverage)](https://sonarcloud.io/summary/new_code?id=xsv24_json-pact)
 
 # 🤝 json-pact
 
-json wrapper library that enforces casing & validates required properties by checking if the property
-uses the nullable `?` property marker as specified in [nullable value types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types).
+json wrapper library that enforces casing & validates required properties by checking if the property uses the nullable `?` property marker as specified by [nullable value types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)
+and also makes use of optional values without the need for extra attributes.
 
-## Newtonsoft
+```c#
+[JsonPact(JsonPactCase.Snake)]
+public record JsonDTO(
+    string RequiredValue,
+    string? NullableValue,
+    string OptionalValue = "default"
+);
+
+// vs
+
+[JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+public record JsonDTO(
+    [property: JsonProperty(Required = Required.Always)]
+    string RequiredValue,
+    string? NullableValue,
+    [property: DefaultValue("fallback")]
+    string OptionalValue
+);
+```
+
+# 🏎️💨 Getting Started
 
 ```c#
 [JsonPact]
@@ -16,8 +40,8 @@ public record JsonDTO(
 );
 ```
 
-> Here we define the schema with a required value with rest of the values
-> defined as default-able without need for additional property attributes.
+> Here we define the schema with a required value `RequiredValue` with rest of the values
+> `NullableValue` & `OptionalValue` defined as default-able properties.
 
 > So if the `RequiredValue` is found missing an error will be thrown and default-able values will be automatically defaulted.
 
@@ -36,7 +60,7 @@ var err = pact.Deserialize<JsonDTO>("{ }");
 // = JsonPactDecodeException
 ```
 
-### Overriding casing
+### 🎮 Overriding casing
 
 > If you are dealing with mixed casing you can provide a casing type with the `JsonPact` attribute,
 > this will override the default casing and will allow you to have nested objects with different casing.
