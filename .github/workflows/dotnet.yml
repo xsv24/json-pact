@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
- 
+
     - name: Setup .NET 5.0
       uses: actions/setup-dotnet@v1
       with:
@@ -35,9 +35,18 @@ jobs:
         sonarProjectKey: xsv24_json-pact
         sonarProjectName: json-pact
         sonarOrganization: xsv24
-        dotnetTestArguments:  --no-build --verbosity normal --logger GitHubActions --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        dotnetTestArguments: --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: DotNET Tests
+        path: "**/test-results.trx"
+        reporter: dotnet-trx
+        fail-on-error: true
