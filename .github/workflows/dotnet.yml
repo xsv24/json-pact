@@ -41,6 +41,7 @@ jobs:
         sonarProjectKey: xsv24_json-pact
         sonarProjectName: json-pact
         sonarOrganization: xsv24
+        dotnetTestArguments: /p:CollectCoverage=true
 
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
