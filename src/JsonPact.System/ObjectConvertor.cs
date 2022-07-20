@@ -8,22 +8,22 @@ namespace JsonPact.System {
     public class ObjectConvertor : JsonConverter<object?> {
         // ignore these types as they already have convertors and we only care about the base types.
         private readonly HashSet<Type> _ignoreClass = new() {
-    typeof(string),
-    typeof(byte[])
-};
+            typeof(string),
+            typeof(byte[])
+        };
 
         // ignore these types as they already have convertors and we only care about the base types.
         private readonly HashSet<Type> _ignoreStruct = new() {
-    typeof(DateTime),
-    typeof(DateTimeOffset),
-    typeof(Guid),
-    typeof(JsonElement),
-    typeof(decimal)
-};
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+            typeof(Guid),
+            typeof(JsonElement),
+            typeof(decimal)
+        };
 
-        public override bool CanConvert(Type objectType) => objectType switch {
-            Type { IsClass: true } when _ignoreClass.All(type => type != objectType) => true,
-            Type { IsValueType: true, IsEnum: false, IsPrimitive: false } when _ignoreStruct.All(type => type != objectType) => true,
+        public override bool CanConvert(Type typeToConvert) => typeToConvert switch {
+            Type { IsClass: true } when _ignoreClass.All(type => type != typeToConvert) => true,
+            Type { IsValueType: true, IsEnum: false, IsPrimitive: false } when _ignoreStruct.All(type => type != typeToConvert) => true,
             Type { IsInterface: true } => true,
             _ => false
         };

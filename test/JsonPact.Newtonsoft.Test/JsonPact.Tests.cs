@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using JsonPact.NewtonSoft;
@@ -137,10 +138,10 @@ namespace JsonPact.Newtonsoft.Test {
             );
         }
 
-        private void AssertSerializedRequiredAndDefaults<T>(
+        private static void AssertSerializedRequiredAndDefaults<T>(
             JsonPactCase casing,
-            string[] populate,
-            string[] ignore,
+            IEnumerable<string> populate,
+            IEnumerable<string> ignore,
             T data
         ) where T : notnull {
             var pact = JsonPacts.Default(casing).IntoJsonPact();
@@ -203,7 +204,7 @@ namespace JsonPact.Newtonsoft.Test {
             AssertEncodeError<JsonClass>(null!);
         }
 
-        private void AssertDecodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {
+        private static void AssertDecodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {
             var pact = JsonPacts.Default(casing).IntoJsonPact();
 
             Action act = () => pact.Deserialize<T>(json!);
@@ -211,7 +212,7 @@ namespace JsonPact.Newtonsoft.Test {
             act.Should().Throw<JsonPactDecodeException>();
         }
 
-        private void AssertEncodeError<T>(T? value, JsonPactCase casing = JsonPactCase.Snake) {
+        private static void AssertEncodeError<T>(T? value, JsonPactCase casing = JsonPactCase.Snake) {
             var pact = JsonPacts.Default(casing).IntoJsonPact();
 
             Action act = () => pact.Serialize<T>(value!);
