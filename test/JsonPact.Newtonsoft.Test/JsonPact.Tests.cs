@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using JsonPact.NewtonSoft;
@@ -137,10 +138,10 @@ namespace JsonPact.Newtonsoft.Test {
             );
         }
 
-        private void AssertSerializedRequiredAndDefaults<T>(
+        private static void AssertSerializedRequiredAndDefaults<T>(
             JsonPactCase casing,
-            string[] populate,
-            string[] ignore,
+            IEnumerable<string> populate,
+            IEnumerable<string> ignore,
             T data
         ) where T : notnull {
             var pact = JsonPacts.Default(casing).IntoJsonPact();

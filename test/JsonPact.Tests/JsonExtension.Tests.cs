@@ -10,7 +10,7 @@ namespace JsonPact.Tests {
                 RequiredValue: "required",
                 Nullable: null
             );
-
+            Assert.True(false);
             var snake = data.IntoJson(JsonPactCase.Snake);
             var kebab = data.IntoJson(JsonPactCase.Kebab);
             var camel = data.IntoJson(JsonPactCase.Camel);
