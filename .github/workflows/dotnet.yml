@@ -35,7 +35,7 @@ jobs:
         sonarProjectKey: xsv24_json-pact
         sonarProjectName: json-pact
         sonarOrganization: xsv24
-        dotnetTestArguments: --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx;" --logger "GitHubActionsTestLogger" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        dotnetTestArguments: --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx;" --logger "GitHubActions" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
       env:
