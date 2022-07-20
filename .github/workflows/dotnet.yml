@@ -35,7 +35,7 @@ jobs:
         sonarProjectKey: xsv24_json-pact
         sonarProjectName: json-pact
         sonarOrganization: xsv24
-        dotnetTestArguments: --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        dotnetTestArguments: --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx;" --logger "GitHubActionsTestLogger" --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
       env:
@@ -46,7 +46,7 @@ jobs:
       uses: dorny/test-reporter@v1
       if: always()
       with:
-        name: DotNET Tests
+        name: Test results
         path: "**/test-results.trx"
         reporter: dotnet-trx
         fail-on-error: true
