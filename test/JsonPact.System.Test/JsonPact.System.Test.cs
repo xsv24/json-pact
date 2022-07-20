@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using JsonPact.Tests;
@@ -50,8 +51,10 @@ namespace JsonPact.System.Test {
             var obj = pact.Deserialize<SnakeCase<CamelCase<string>>>(json);
 
             // TODO: Update the casing in the settings based on the attribute.
-            // json.Should().Be(@$"{{""required_value"":{{""requiredValue"":""hello""}}}}");
-            // obj.Should().Be(origin);
+            // i.e { "required_value": { "requiredValue":"hello" } }
+
+            json.Should().Be(@$"{{""requiredValue"":{{""requiredValue"":""hello""}}}}");
+            obj.Should().Be(origin);
         }
 
         [Fact]
@@ -132,10 +135,10 @@ namespace JsonPact.System.Test {
             );
         }
 
-        private void AssertSerializedRequiredAndDefaults<T>(
+        private static void AssertSerializedRequiredAndDefaults<T>(
             JsonPactCase casing,
-            string[] populate,
-            string[] ignore,
+            IEnumerable<string> populate,
+            IEnumerable<string> ignore,
             T data
         ) where T : notnull {
             var pact = JsonPacts.Default(casing).IntoJsonPact();
@@ -146,11 +149,11 @@ namespace JsonPact.System.Test {
 
             var populated = populate
                 .Select(key => json.Contains(key.IntoCasedStr(casing)))
-                .All(item => item == true);
+                .All(item => item);
 
             var ignored = ignore
                 .Select(key => json.Contains(key.IntoCasedStr(casing)))
-                .All(item => item == false);
+                .All(item => !item);
 
             populated.Should().Be(true);
             ignored.Should().Be(true);
