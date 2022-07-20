@@ -42,6 +42,7 @@ jobs:
         sonarProjectName: json-pact
         sonarOrganization: xsv24
         dotnetTestArguments: /p:CollectCoverage=true
+        sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
