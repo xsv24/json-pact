@@ -41,12 +41,3 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Test results
-        path: "**/test-results.trx"
-        reporter: dotnet-trx
-        fail-on-error: true
