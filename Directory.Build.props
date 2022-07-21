@@ -10,7 +10,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Json</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <PackageIconUrl>https://github.com/xsv24/json-pact/img/handshake_emoji.png</PackageIconUrl>
+    <PackageIconUrl>https://github.com/xsv24/json-pact/blob/main/img/handshake_emoji.png?raw=true</PackageIconUrl>
     <PackageProjectUrl>https://github.com/xsv24/json-pact</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xsv24/json-pact.git</RepositoryUrl>
     <Title>json-pact</Title>
