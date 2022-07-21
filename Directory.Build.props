@@ -8,7 +8,6 @@
     <Version></Version>
     <Authors>Thomas Pearson</Authors>
     <Company>xsv24</Company>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageTags>Json</PackageTags>
     <PackageIconUrl>https://github.com/xsv24/json-pact/blob/main/img/handshake_emoji.png?raw=true</PackageIconUrl>
