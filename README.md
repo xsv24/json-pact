@@ -1,8 +1,16 @@
-[![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/core/introduction)
-[![nuget](https://img.shields.io/badge/NuGet-004880?style=for-the-badge&logo=nuget&logoColor=white)]()
+[![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=csharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/core/introduction)
 
-[![tests status](https://github.com/xsv24/json-pact/actions/workflows/dotnet.yml/badge.svg?event=push)](https://github.com/xsv24/json-pact/actions?query=branch%3Amain+)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=xsv24_json-pact&metric=coverage)](https://sonarcloud.io/summary/new_code?id=xsv24_json-pact)
+[![NuGet](https://img.shields.io/nuget/v/JsonPact.Newtonsoft?style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
+[![license](https://img.shields.io/github/license/xsv24/json-pact?color=blue&style=flat-square&logo=)](./LICENSE)
+<!---
+Once we get some downloads.
+[![NuGet](https://img.shields.io/nuget/dt/JsonPact.Newtonsoft?style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
+-->
+
+[![tests status](https://img.shields.io/github/workflow/status/xsv24/json-pact/tests?label=tests&logo=Github&style=flat-square)](https://github.com/xsv24/json-pact/actions?query=branch%3Amain+)
+[![release status](https://img.shields.io/github/workflow/status/xsv24/json-pact/release?label=release&logo=Github&style=flat-square)](https://github.com/xsv24/json-pact/actions?query=branch%3Amain+)
+[![coverage](https://img.shields.io/sonar/coverage/xsv24_json-pact/main?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/new_code?id=xsv24_json-pact)
+[![coverage](https://img.shields.io/sonar/quality_gate/xsv24_json-pact/main?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/new_code?id=xsv24_json-pact)
 
 # 🤝 json-pact
 
@@ -45,6 +53,12 @@ You will need to enable the nullable project setting within your projects
 </PropertyGroup>
 ```
 
+## Install
+
+```bash
+dotnet add package JsonPact.Newtonsoft
+```
+
 ## 🏎️💨 Getting Started
 
 ```c#
@@ -74,7 +88,7 @@ var err = pact.Deserialize<JsonDTO>("{ }");
 // = JsonPactDecodeException
 ```
 
-### 🎮 Overriding casing
+## 🎮 Overriding casing
 
 > If you are dealing with mixed casing you can provide a casing type with the `JsonPact` attribute,
 > this will override the default casing and will allow you to have nested objects with different casing.
