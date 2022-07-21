@@ -33,6 +33,5 @@ jobs:
       - name: Pack
         run: dotnet pack ./src/JsonPact.Newtonsoft --configuration Release -p:PackageVersion=${TAG}
 
-      #- name: Publish 
-      #  run: dotnet nuget push JsonPact.Newtonsoft.${{TAG}}.nupkg --api-key ${{NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
-  
+      - name: Publish
+        run: dotnet nuget push JsonPact.Newtonsoft.${TAG}.nupkg --api-key ${{NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
