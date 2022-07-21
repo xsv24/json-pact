@@ -1,7 +1,23 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TargetFrameworks>net6.0;net5.0;</TargetFrameworks>
     <Nullable>enable</Nullable>
+    
+    <Version></Version>
+    <Authors>Thomas Pearson</Authors>
+    <Company>xsv24</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>Json</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PackageIconUrl>https://github.com/xsv24/json-pact/blob/main/img/handshake_emoji.png?raw=true</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/xsv24/json-pact</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xsv24/json-pact.git</RepositoryUrl>
+    <Title>json-pact</Title>
+    <Description>
+      json wrapper library that enforces casing and validates required properties by checking if the property uses the nullable `?` property marker as specified by [nullable value types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)
+      and also makes use of optional values without the need for extra attributes.
+    </Description>
   </PropertyGroup>
 </Project>
