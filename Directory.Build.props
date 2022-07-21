@@ -3,5 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <TargetFrameworks>net6.0;net5.0;</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <Version></Version>
+    <Authors>Thomas Pearson</Authors>
   </PropertyGroup>
 </Project>

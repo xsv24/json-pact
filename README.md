@@ -1,5 +1,5 @@
-![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![nuget](https://img.shields.io/badge/NuGet-004880?style=for-the-badge&logo=nuget&logoColor=white)
+[![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/core/introduction)
+[![nuget](https://img.shields.io/badge/NuGet-004880?style=for-the-badge&logo=nuget&logoColor=white)]()
 
 [![tests status](https://github.com/xsv24/json-pact/actions/workflows/dotnet.yml/badge.svg?event=push)](https://github.com/xsv24/json-pact/actions?query=branch%3Amain+)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=xsv24_json-pact&metric=coverage)](https://sonarcloud.io/summary/new_code?id=xsv24_json-pact)
@@ -8,6 +8,10 @@
 
 json wrapper library that enforces casing & validates required properties by checking if the property uses the nullable `?` property marker as specified by [nullable value types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)
 and also makes use of optional values without the need for extra attributes.
+
+💪 Extending
+- [x] [Newtonsoft](https://www.newtonsoft.com/json)
+- [ ] [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0)
 
 ```c#
 [JsonPact(JsonPactCase.Snake)]
@@ -29,7 +33,19 @@ public record JsonDTO(
 );
 ```
 
-# 🏎️💨 Getting Started
+## 🥽 Prerequisites
+
+You will need to enable the nullable project setting within your projects
+`.csproj` file.
+
+```xml
+<PropertyGroup>
+    <!-- ... -->
+    <Nullable>enable</Nullable>
+</PropertyGroup>
+```
+
+## 🏎️💨 Getting Started
 
 ```c#
 [JsonPact]
@@ -46,8 +62,6 @@ public record JsonDTO(
 > So if the `RequiredValue` is found missing an error will be thrown and default-able values will be automatically defaulted.
 
 ```c#
-using JsonPact.NewtonSoft;
-
 var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
 
 var json = pact.Serialize(new JsonDTO("required", null));
