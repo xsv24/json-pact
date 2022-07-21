@@ -9,9 +9,11 @@
     <Authors>Thomas Pearson</Authors>
     <Company>xsv24</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageTags>Json</PackageTags>
-    <RepositoryType>git</RepositoryType>
     <PackageIconUrl>https://github.com/xsv24/json-pact/blob/main/img/handshake_emoji.png?raw=true</PackageIconUrl>
+    <PackageIconUrl>img/handshake_emoji.png</PackageIconUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/xsv24/json-pact</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xsv24/json-pact.git</RepositoryUrl>
     <Title>json-pact</Title>
@@ -19,5 +21,18 @@
       json wrapper library that enforces casing and validates required properties by checking if the property uses the nullable `?` property marker as specified by [nullable value types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)
       and also makes use of optional values without the need for extra attributes.
     </Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Include icon for nuget -> https://docs.microsoft.com/en-us/nuget/reference/msbuild-targets#packageiconurl -->
+    <None Include="img/handshake_emoji.png" Pack="true" PackagePath="" />
+    
+    <!-- Include README for nuget docs -> https://docs.microsoft.com/en-us/nuget/reference/msbuild-targets#packagereadmefile -->
+    <None Include="README.md" Pack="true" PackagePath="" />
+    
+    <!-- Include MIT LICENCE for nuget -> https://docs.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-a-license-expression-or-a-license-file -->
+    <None Include="LICENCE" Pack="true" PackagePath="" />
+  </ItemGroup>
+  
 </Project>
