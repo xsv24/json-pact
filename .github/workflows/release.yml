@@ -26,7 +26,7 @@ jobs:
         run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 
       - name: Pack
-        run: dotnet pack ./src/JsonPact.Newtonsoft --configuration Release -p:PackageVersion=${{TAG}}
+        run: dotnet pack ./src/JsonPact.Newtonsoft --configuration Release -p:PackageVersion=${TAG}
 
       #- name: Publish 
       #  run: dotnet nuget push JsonPact.Newtonsoft.${{TAG}}.nupkg --api-key ${{NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
