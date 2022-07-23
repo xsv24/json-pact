@@ -76,6 +76,7 @@ public record JsonDTO(
 > So if the `RequiredValue` is found missing an error will be thrown and default-able values will be automatically defaulted.
 
 ```c#
+var pact = JsonOptions.Default(JsonPactCase.Snake).IntoJsonPact();
 var pact = JsonPacts.Default(JsonPactCase.Snake).IntoJsonPact();
 
 var json = pact.Serialize(new JsonDTO("required", null));
@@ -86,6 +87,18 @@ var obj = pact.Deserialize<JsonDTO>(json);
 
 var err = pact.Deserialize<JsonDTO>("{ }");
 // = JsonPactDecodeException
+```
+
+## ⚙️ Settings 
+
+> Setup`JsonPact` settings along with your own `Newtonsoft` settings.
+
+```c#
+var settings = new NewtonSoft.JsonSerializerSettings { 
+ // ...
+}.AddJsonPact(JsonPactCase.Camel);
+
+var pact = settings.IntoJsonPact(); 
 ```
 
 ## 🎮 Overriding casing
