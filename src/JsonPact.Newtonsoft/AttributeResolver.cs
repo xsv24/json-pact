@@ -24,7 +24,8 @@ namespace JsonPact.NewtonSoft {
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
             var hit = _map.GetValueOrDefault(type);
 
-            var properties = hit switch { { } props => props.ToList(),
+            var properties = hit switch {
+                IEnumerable<JsonProperty> { } props => props.ToList(),
                 null => CreateJsonProperties(type, memberSerialization).ToList()
             };
 
@@ -65,12 +66,10 @@ namespace JsonPact.NewtonSoft {
             };
         }
 
-        private static JsonProperty MergeConstructorDefaultParams(JsonProperty prop, Dictionary<string, ParameterInfo> args) {
+        private static JsonProperty MergeConstructorDefaultParams(JsonProperty prop, IReadOnlyDictionary<string, ParameterInfo> args) {
             var info = args.GetValueOrDefault(prop.UnderlyingName!);
 
             if (info is null) return prop;
-
-            prop.NullValueHandling = NullValueHandling.Ignore;
 
             prop.Required = info switch {
                 ParameterInfo { HasDefaultValue: false } when
@@ -107,14 +106,13 @@ namespace JsonPact.NewtonSoft {
             };
         }
 
-        private static JsonProperty MergePropertyDefaults(JsonProperty prop, Dictionary<string, MemberInfo> fields, object defaulted) {
+        private static JsonProperty MergePropertyDefaults(JsonProperty prop, IReadOnlyDictionary<string, MemberInfo> fields, object defaulted) {
             var info = (PropertyInfo?)fields.GetValueOrDefault(prop.UnderlyingName!);
 
             if (info is null) return prop;
 
             var defaultedValue = info.GetValue(defaulted);
 
-            prop.NullValueHandling = NullValueHandling.Ignore;
             prop.DefaultValue = defaultedValue;
             prop.Required = defaultedValue switch {
                 object { } => Required.Default,
@@ -130,9 +128,6 @@ namespace JsonPact.NewtonSoft {
             return prop;
         }
 
-        private static JsonObjectContract AddObjectContractProperties(JsonObjectContract contract) {
-            contract.ItemNullValueHandling = NullValueHandling.Ignore;
-            return contract;
-        }
+        private static JsonObjectContract AddObjectContractProperties(JsonObjectContract contract) => contract;
     }
 }

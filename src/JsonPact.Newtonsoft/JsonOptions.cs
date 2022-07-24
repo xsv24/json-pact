@@ -14,14 +14,21 @@ namespace JsonPact.NewtonSoft {
         /// <param name="settings"><see cref="JsonSerializerSettings"/></param>
         /// <exception cref="ArgumentException">Occurs on attempted override of required setting value.</exception>
         internal JsonOptions(JsonPactCase casing, JsonSerializerSettings settings) {
+            if (settings is not {
+                DefaultValueHandling: DefaultValueHandling.Populate or default(DefaultValueHandling),
+                ContractResolver: JsonPactAttributesResolver or null
+            }) {
+                throw new ArgumentException($"JsonPact relies on '{nameof(DefaultValueHandling)}' & '{nameof(ContractResolver)}' properties and are immutable.");
+            }
+
             // Set immutable required defaults.
-            base.NullValueHandling = NullValueHandling.Ignore;
             base.DefaultValueHandling = DefaultValueHandling.Populate;
             base.ContractResolver = new JsonPactAttributesResolver {
                 NamingStrategy = casing.IntoNamingStrategy()
             };
 
             // Copy over the remaining customizable values.
+            NullValueHandling = settings.NullValueHandling;
             Context = settings.Context;
             Converters = settings.Converters;
             Culture = settings.Culture;
@@ -50,9 +57,6 @@ namespace JsonPact.NewtonSoft {
             TypeNameAssemblyFormatHandling = settings.TypeNameAssemblyFormatHandling;
         }
 
-        /// <inheritdoc cref="JsonSerializerSettings.NullValueHandling"/>
-        public new NullValueHandling NullValueHandling => base.NullValueHandling;
-
         /// <inheritdoc cref="JsonSerializerSettings.DefaultValueHandling"/>
         public new DefaultValueHandling DefaultValueHandling => base.DefaultValueHandling;
 
@@ -64,7 +68,10 @@ namespace JsonPact.NewtonSoft {
         /// </summary>
         /// <param name="casing"><see cref="JsonPactCase"/></param>
         /// <returns><see cref="JsonOptions"/></returns>
-        public static JsonOptions Default(JsonPactCase casing) => new(casing, new JsonSerializerSettings());
+        public static JsonOptions Default(JsonPactCase casing) => new(casing, new JsonSerializerSettings {
+            NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Populate
+        });
 
         /// <summary>
         /// Converts Newtonsoft settings into an <see cref="IJsonPact"/>.

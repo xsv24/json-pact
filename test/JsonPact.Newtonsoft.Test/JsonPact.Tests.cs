@@ -152,11 +152,11 @@ namespace JsonPact.Newtonsoft.Test {
 
             var populated = populate
                 .Select(key => json.Contains(key.IntoCasedStr(casing)))
-                .All(item => item == true);
+                .All(item => item);
 
             var ignored = ignore
                 .Select(key => json.Contains(key.IntoCasedStr(casing)))
-                .All(item => item == false);
+                .All(item => !item);
 
             populated.Should().Be(true);
             ignored.Should().Be(true);
