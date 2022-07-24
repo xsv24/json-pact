@@ -11,7 +11,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageTags>Json</PackageTags>
     <PackageIconUrl>https://github.com/xsv24/json-pact/blob/main/img/handshake_emoji.png?raw=true</PackageIconUrl>
-    <PackageIconUrl>img/handshake_emoji.png</PackageIconUrl>
+    <PackageIconUrl>handshake_emoji.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/xsv24/json-pact</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xsv24/json-pact.git</RepositoryUrl>

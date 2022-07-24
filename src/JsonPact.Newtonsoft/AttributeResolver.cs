@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,25 +12,39 @@ using Newtonsoft.Json.Serialization;
 
 namespace JsonPact.NewtonSoft {
     public class JsonPactAttributesResolver : DefaultContractResolver {
+        private readonly ConcurrentDictionary<Type, IEnumerable<JsonProperty>> _map = new();
 
+        /// <inheritdoc />
         protected override JsonContract CreateContract(Type objectType) => base.CreateContract(objectType) switch {
             JsonObjectContract contract => AddObjectContractProperties(contract),
             var other => other
         };
 
+        /// <inheritdoc />
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
+            var hit = _map.GetValueOrDefault(type);
+
+            var properties = hit switch {
+                IEnumerable<JsonProperty> { } props => props.ToList(),
+                null => CreateJsonProperties(type, memberSerialization).ToList()
+            };
+
+            _map.TryAdd(type, properties);
+
+            return properties;
+        }
+
+        private IEnumerable<JsonProperty> CreateJsonProperties(Type type, MemberSerialization memberSerialization) {
             var properties = base.CreateProperties(type, memberSerialization);
 
             // Create an instance of an object if it has no or an empty constructor.
             var defaults = type.GetConstructor(Type.EmptyTypes) != null ? Activator.CreateInstance(type) : null;
 
-            // Set up json properties based on wether the object is a plain DTO with an empty constructor. 
-            var merged = defaults switch {
+            // Set up json properties based on whether the object is a plain DTO with an empty constructor. 
+            return defaults switch {
                 object { } defaulted => MergePropertyDefaults(properties, type, defaulted),
                 null => MergeConstructorDefaults(properties, type)
             };
-
-            return merged.ToList() ?? new List<JsonProperty>();
         }
 
         /// <summary>
@@ -51,12 +66,10 @@ namespace JsonPact.NewtonSoft {
             };
         }
 
-        private static JsonProperty MergeConstructorDefaultParams(JsonProperty prop, Dictionary<string, ParameterInfo> args) {
+        private static JsonProperty MergeConstructorDefaultParams(JsonProperty prop, IReadOnlyDictionary<string, ParameterInfo> args) {
             var info = args.GetValueOrDefault(prop.UnderlyingName!);
 
             if (info is null) return prop;
-
-            prop.NullValueHandling = NullValueHandling.Ignore;
 
             prop.Required = info switch {
                 ParameterInfo { HasDefaultValue: false } when
@@ -93,14 +106,13 @@ namespace JsonPact.NewtonSoft {
             };
         }
 
-        private static JsonProperty MergePropertyDefaults(JsonProperty prop, Dictionary<string, MemberInfo> fields, object defaulted) {
+        private static JsonProperty MergePropertyDefaults(JsonProperty prop, IReadOnlyDictionary<string, MemberInfo> fields, object defaulted) {
             var info = (PropertyInfo?)fields.GetValueOrDefault(prop.UnderlyingName!);
 
             if (info is null) return prop;
 
             var defaultedValue = info.GetValue(defaulted);
 
-            prop.NullValueHandling = NullValueHandling.Ignore;
             prop.DefaultValue = defaultedValue;
             prop.Required = defaultedValue switch {
                 object { } => Required.Default,
@@ -116,9 +128,6 @@ namespace JsonPact.NewtonSoft {
             return prop;
         }
 
-        private static JsonObjectContract AddObjectContractProperties(JsonObjectContract contract) {
-            contract.ItemNullValueHandling = NullValueHandling.Ignore;
-            return contract;
-        }
+        private static JsonObjectContract AddObjectContractProperties(JsonObjectContract contract) => contract;
     }
 }

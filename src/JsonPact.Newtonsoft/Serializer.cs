@@ -16,7 +16,7 @@ namespace JsonPact.NewtonSoft {
 
         public T? Deserialize<T>(string json) {
             if (string.IsNullOrWhiteSpace(json)) {
-                throw new JsonPactDecodeException($"Empty json strings are invalid, failed to deserialize json.");
+                throw new JsonPactDecodeException("Empty json strings are invalid, failed to deserialize json.");
             }
 
             try {
@@ -33,7 +33,7 @@ namespace JsonPact.NewtonSoft {
 
             try {
                 return JsonConvert.SerializeObject(value, _settings)
-                    ?? throw new JsonPactEncodeException($"Failed to serialize given {typeof(T).Name} into valid json.");
+                       ?? throw new JsonPactEncodeException($"Failed to serialize given {typeof(T).Name} into valid json.");
             } catch (Exception inner) when (inner is not JsonPactException) {
                 throw new JsonPactEncodeException($"Failed to serialize object: {inner.Message}", inner);
             }
@@ -41,28 +41,39 @@ namespace JsonPact.NewtonSoft {
     }
 
     public static class JsonPacts {
-        public static JsonSerializerSettings Default(JsonPactCase casing) => new() {
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Populate,
-            MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
-            ContractResolver = new JsonPactAttributesResolver {
-                NamingStrategy = casing.IntoNamingStrategy()
-            }
-        };
+        /// <summary>
+        /// Default <see cref="JsonSerializerSettings"/> for JsonPact.
+        /// </summary>
+        /// <param name="casing"><see cref="JsonPactCase"/></param>
+        /// <returns><see cref="JsonOptions"/></returns>
+        public static JsonOptions Default(JsonPactCase casing) => JsonOptions.Default(casing);
 
+        /// <summary>
+        /// Add JsonPact settings to <see cref="JsonSerializerSettings" />.
+        /// </summary>
+        /// <param name="settings"><see cref="JsonSerializerSettings" /></param>
+        /// <param name="casing"><see cref="JsonSerializerSettings" /></param>
+        /// <returns><see cref="JsonOptions"/></returns>
+        public static JsonOptions AddJsonPact(
+            this JsonSerializerSettings settings,
+            JsonPactCase casing
+        ) => new(casing, settings);
+
+        /// <summary>
+        /// Convert <see cref="JsonPactCase"/> into Newtonsoft's <see cref="NamingStrategy"/>.
+        /// </summary>
+        /// <param name="casing"><see cref="JsonPactCase"/></param>
+        /// <returns><see cref="NamingStrategy"/></returns>
+        /// <exception cref="ArgumentOutOfRangeException">Occurs on an invalid <see cref="JsonPactCase"/>.</exception>
         public static NamingStrategy? IntoNamingStrategy(this JsonPactCase casing) => casing switch {
             JsonPactCase.Snake => new SnakeCaseNamingStrategy(),
             JsonPactCase.Camel => new CamelCaseNamingStrategy(),
             JsonPactCase.Kebab => new KebabCaseNamingStrategy(),
             JsonPactCase.Pascal => null, // Is used by default.
-            _ => throw new ArgumentOutOfRangeException(nameof(casing), $"Unsupported casing type {casing} for 'Newtonsoft' settings.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(casing),
+                $"Unsupported casing type {casing} for 'Newtonsoft' settings."
+            )
         };
-
-        /// <summary>
-        /// Converts Newtonsoft settings into an <see cref="IJsonPact"/>.
-        /// </summary>
-        /// <param name="options">Newtonsoft settings to used to serialize and deserialize json.</param>
-        /// <returns><see cref="IJsonPact"/></returns>
-        public static IJsonPact IntoJsonPact(this JsonSerializerSettings options) => new Serializer(options);
     }
 }

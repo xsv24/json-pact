@@ -88,6 +88,18 @@ var err = pact.Deserialize<JsonDTO>("{ }");
 // = JsonPactDecodeException
 ```
 
+## ⚙️ Settings 
+
+> Setup`JsonPact` settings along with your own `Newtonsoft` settings.
+
+```c#
+var settings = new NewtonSoft.JsonSerializerSettings { 
+ // ...
+}.AddJsonPact(JsonPactCase.Camel);
+
+var pact = settings.IntoJsonPact(); 
+```
+
 ## 🎮 Overriding casing
 
 > If you are dealing with mixed casing you can provide a casing type with the `JsonPact` attribute,
