@@ -32,23 +32,41 @@ namespace JsonPact.System {
             ref Utf8JsonReader reader,
             Type typeToConvert,
             JsonSerializerOptions options
-        ) => reader.TokenType switch {
-            JsonTokenType.StartObject => Reader(ref reader, typeToConvert, options),
-            _ => JsonSerializer.Deserialize(ref reader, typeToConvert, options.With())
-        };
+        ) {
+            var attr = typeToConvert.GetJsonPactAttribute();
+
+            return reader.TokenType switch {
+                JsonTokenType.StartObject => Reader(ref reader, typeToConvert, AddCasing(options, attr?.Casing)),
+                _ => JsonSerializer.Deserialize(ref reader, typeToConvert, AddCasing(options, attr?.Casing))
+            };
+        }
 
         public override void Write(
             Utf8JsonWriter writer,
             object? objectToWrite,
             JsonSerializerOptions options
-        ) => JsonSerializer.Serialize(writer, objectToWrite, objectToWrite?.GetType()!, options.With());
+        ) {
+            var type = objectToWrite?.GetType();
+            var attr = type?.GetJsonPactAttribute();
+
+            JsonSerializer.Serialize(
+                writer,
+                objectToWrite,
+                type!,
+                AddCasing(options, attr?.Casing)
+            );
+        }
 
         private static object? Reader(
             ref Utf8JsonReader reader,
             Type typeToConvert,
             JsonSerializerOptions options
         ) {
-            var obj = JsonSerializer.Deserialize(ref reader, typeToConvert, options.With());
+            var obj = JsonSerializer.Deserialize(
+                ref reader,
+                typeToConvert,
+                options
+            );
 
             if (obj is null) return null;
 
@@ -62,6 +80,9 @@ namespace JsonPact.System {
                 null => ValidateParameters(obj)
             };
         }
+
+        private static JsonSerializerOptions AddCasing(JsonSerializerOptions options, CasingPolicy? policy) =>
+            options.With(propertyNamingPolicy: policy ?? options.PropertyNamingPolicy);
 
         private static object ValidateParameters(object obj) {
             var type = obj.GetType();

@@ -53,7 +53,7 @@ namespace JsonPact.System.Test {
             // TODO: Update the casing in the settings based on the attribute.
             // i.e { "required_value": { "requiredValue":"hello" } }
 
-            json.Should().Be(@$"{{""requiredValue"":{{""requiredValue"":""hello""}}}}");
+            json.Should().Be(@$"{{""required_value"":{{""required_value"":""hello""}}}}");
             obj.Should().Be(origin);
         }
 
