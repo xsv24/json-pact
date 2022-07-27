@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using FluentAssertions;
 using JsonPact.Tests;
 using Xunit;
@@ -185,6 +188,69 @@ namespace JsonPact.System.Test {
             AssertDecodeError<JsonClass>(json, casing);
         }
 
+        [Fact]
+        public void ObjectConvertor_Constructor_Cache_Is_Used() {
+            var convertor = new ObjectConvertor();
+
+            ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }");
+
+            convertor.RequiredProps.Should().HaveCount(0);
+            convertor.RequiredParams.Should().HaveCount(1);
+
+            var required = convertor.RequiredParams.First();
+            required.Key.Should().Be(typeof(JsonRecord));
+            required.Value.Should().BeEquivalentTo(new List<string> { "RequiredValue" }.ToImmutableArray());
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_No_Matching_Key() {
+            var convertor = new ObjectConvertor();
+
+            var valid = ObjectConvertor.ValidateCache(convertor.RequiredParams, typeof(JsonRecord), new JsonRecord("hi", null));
+
+            valid.Should().Be(false);
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_Required_Satisfied() {
+            var convertor = new ObjectConvertor();
+
+            var obj = ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }")!;
+
+            var valid = ObjectConvertor.ValidateCache(convertor.RequiredParams, typeof(JsonRecord), obj);
+
+            valid.Should().Be(true);
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_Required_Not_Satisfied() {
+            var convertor = new ObjectConvertor();
+
+            _ = ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }")!;
+
+            Action act = () => ObjectConvertor.ValidateCache(
+                convertor.RequiredParams,
+                typeof(JsonRecord),
+                new JsonRecord(null!, null)
+            );
+
+            act.Should().Throw<JsonPactDecodeException>();
+        }
+
+        [Fact]
+        public void ObjectConvertor_Properties_Cache_Is_Used() {
+            var convertor = new ObjectConvertor();
+
+            ReadJson<JsonRecordDTO>(convertor, @"{ ""required_value"": ""required"" }");
+
+            convertor.RequiredParams.Should().HaveCount(0);
+            convertor.RequiredProps.Should().HaveCount(1);
+
+            var required = convertor.RequiredProps.First();
+            required.Key.Should().Be(typeof(JsonRecordDTO));
+            required.Value.Should().BeEquivalentTo(new List<string> { "RequiredValue" }.ToImmutableArray());
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData(null)]
@@ -201,6 +267,19 @@ namespace JsonPact.System.Test {
             AssertEncodeError<JsonRecord>(null!);
             AssertEncodeError<JsonRecordDTO>(null!);
             AssertEncodeError<JsonClass>(null!);
+        }
+
+        private static T? ReadJson<T>(ObjectConvertor convertor, string json) {
+            ReadOnlySpan<byte> span = Encoding.UTF8.GetBytes(json);
+            var reader = new Utf8JsonReader(span);
+
+            object? obj = null;
+
+            while (reader.Read()) {
+                obj = convertor.Read(ref reader, typeof(T), JsonPacts.Default(JsonPactCase.Snake));
+            }
+
+            return (T?)obj;
         }
 
         private static void AssertDecodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {

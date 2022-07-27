@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -6,10 +7,14 @@ using System.Text.Json.Serialization;
 
 namespace JsonPact.System {
     public class ObjectConvertor : JsonConverter<object?> {
+        internal readonly ConcurrentDictionary<Type, IReadOnlyList<string>> RequiredParams = new();
+        internal readonly ConcurrentDictionary<Type, IReadOnlyList<string>> RequiredProps = new();
+
         // ignore these types as they already have convertors and we only care about the base types.
         private readonly HashSet<Type> _ignoreClass = new() {
             typeof(string),
-            typeof(byte[])
+            typeof(byte[]),
+            typeof(JsonDocument)
         };
 
         // ignore these types as they already have convertors and we only care about the base types.
@@ -18,7 +23,13 @@ namespace JsonPact.System {
             typeof(DateTimeOffset),
             typeof(Guid),
             typeof(JsonElement),
-            typeof(decimal)
+            typeof(decimal),
+            typeof(double),
+            typeof(long),
+            typeof(ulong),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint)
         };
 
         public override bool CanConvert(Type typeToConvert) => typeToConvert switch {
@@ -57,7 +68,7 @@ namespace JsonPact.System {
             );
         }
 
-        private static object? Reader(
+        private object? Reader(
             ref Utf8JsonReader reader,
             Type typeToConvert,
             JsonSerializerOptions options
@@ -81,33 +92,57 @@ namespace JsonPact.System {
             };
         }
 
-        private static JsonSerializerOptions AddCasing(JsonSerializerOptions options, CasingPolicy? policy) =>
-            options.With(propertyNamingPolicy: policy ?? options.PropertyNamingPolicy);
-
-        private static object ValidateParameters(object obj) {
+        private object ValidateParameters(object obj) {
             var type = obj.GetType();
 
-            type.GetConstructorParams().ForEach(param => {
-                var value = type.GetProperty(param.Name!)?.GetValue(obj);
+            if (ValidateCache(RequiredParams, type, obj)) return obj;
 
-                if (param.IsRequired(type) && value == null) {
-                    throw new JsonPactDecodeException($"missing required value '{param.Name}'");
-                }
-            });
+            var required = new List<string>();
 
-            return obj;
+            var missing = type.GetConstructorParams()
+                .Where(param => param.IsRequired(type))
+                .ForEach(param => required.Add(param.Name!))
+                .FirstOrDefault(param => PropertyIsNull(type, param.Name!, obj));
+
+            RequiredParams.TryAdd(type, required);
+
+            return missing is { }
+                 ? throw new JsonPactDecodeException($"missing required value '{missing.Name}'")
+                 : obj;
         }
 
-        private static object ValidateProperties(Type type, object obj, object defaults) {
-            type.GetProperties().ForEach(prop => {
-                var required = prop.IsRequired(type, defaults);
+        private object ValidateProperties(Type type, object obj, object defaults) {
+            if (ValidateCache(RequiredProps, type, obj)) return obj;
 
-                if (required && prop.GetValue(obj) == null) {
-                    throw new JsonPactDecodeException($"missing required value '{prop.Name}'");
-                }
-            });
+            var required = new List<string>();
 
-            return obj;
+            var missing = type.GetProperties()
+                .Where(prop => prop.IsRequired(type, defaults))
+                .ForEach(prop => required.Add(prop.Name))
+                .FirstOrDefault(prop => prop.GetValue(obj) == null);
+
+            RequiredProps.TryAdd(type, required);
+
+            return missing is { }
+                 ? throw new JsonPactDecodeException($"missing required value '{missing.Name}'")
+                 : obj;
         }
+
+        internal static bool ValidateCache(ConcurrentDictionary<Type, IReadOnlyList<string>> cache, Type type, object obj) {
+            if (!cache.ContainsKey(type)) return false;
+
+            var missingName = cache[type]
+                .FirstOrDefault(param => PropertyIsNull(type, param, obj));
+
+            return missingName is { }
+                ? throw new JsonPactDecodeException($"missing required value '{missingName}'")
+                : true;
+        }
+
+        private static bool PropertyIsNull(Type type, string name, object obj) =>
+            type.GetProperty(name)?.GetValue(obj) == null;
+
+        private static JsonSerializerOptions AddCasing(JsonSerializerOptions options, CasingPolicy? policy) =>
+            options.With(propertyNamingPolicy: policy ?? options.PropertyNamingPolicy);
     }
 }

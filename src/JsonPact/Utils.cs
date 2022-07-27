@@ -6,10 +6,14 @@ using System.Reflection;
 
 namespace JsonPact {
     internal static class Extensions {
-        public static void ForEach<T>(this IEnumerable<T> collection, Action<T> fn) {
-            foreach (var item in collection) {
+        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> collection, Action<T> fn) {
+            var list = collection.ToList();
+
+            foreach (var item in list) {
                 fn(item);
             }
+
+            return list;
         }
 
         /// <summary>
@@ -24,6 +28,7 @@ namespace JsonPact {
         /// Checks to see if the '?' nullable operator has been used on a property within an object schema.
         /// </summary>
         /// <param name="attributes">These are the extensions added on a property which can be obtained through reflection.</param>
+        /// <param name="recurse">Recurse through the base type if any.</param>
         /// <returns>true if attributes contains a 'NullableAttribute' otherwise false.</returns>
         public static bool IsNullable(this IEnumerable<CustomAttributeData>? attributes, bool recurse = false) {
             if (attributes is null) return false;

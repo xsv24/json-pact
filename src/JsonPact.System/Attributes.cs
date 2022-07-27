@@ -12,11 +12,5 @@ namespace JsonPact.System {
         public JsonPactAttribute(JsonPactCase casing) {
             Casing = new CasingPolicy(casing);
         }
-
-        /*
-        public override JsonConverter? CreateConverter(Type typeToConvert) {
-            return new ObjectJsonConvertor(typeToConvert, Casing);
-        }
-        */
     }
 }
