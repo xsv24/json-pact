@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using FluentAssertions;
 using JsonPact.Tests;
 using Xunit;
@@ -13,30 +16,33 @@ namespace JsonPact.System.Test {
         [InlineData(JsonPactCase.Camel)]
         [InlineData(JsonPactCase.Kebab)]
         [InlineData(JsonPactCase.Pascal)]
-        public void Required_And_Defaulted_Values_Are_Populated(JsonPactCase casing) {
+        public void Required_And_Defaulted_Values_Including_Cache(JsonPactCase casing) {
             var populated = new[] { "required_value", "defaulted" };
             var ignored = new[] { "nullable_default", "nullable" };
 
-            AssertSerializedRequiredAndDefaults(
-                casing,
-                populated,
-                ignored,
-                new JsonRecord(RequiredValue: "required", Nullable: null)
-            );
+            // We iterate the over twice to test the cache enforces correctly as well.
+            foreach (var _ in Enumerable.Range(0, 2)) {
+                AssertSerializedRequiredAndDefaults(
+                    casing,
+                    populated,
+                    ignored,
+                    new JsonRecord(RequiredValue: "required", Nullable: null)
+                );
 
-            AssertSerializedRequiredAndDefaults(
-                casing,
-                populated,
-                ignored,
-                new JsonRecordDTO { RequiredValue = "required", Nullable = null }
-            );
+                AssertSerializedRequiredAndDefaults(
+                    casing,
+                    populated,
+                    ignored,
+                    new JsonRecordDTO { RequiredValue = "required", Nullable = null }
+                );
 
-            AssertSerializedRequiredAndDefaults(
-                casing,
-                populated,
-                ignored,
-                new JsonClass { RequiredValue = "required", Nullable = null }
-            );
+                AssertSerializedRequiredAndDefaults(
+                    casing,
+                    populated,
+                    ignored,
+                    new JsonClass { RequiredValue = "required", Nullable = null }
+                );
+            }
         }
 
         [Fact]
@@ -53,7 +59,7 @@ namespace JsonPact.System.Test {
             // TODO: Update the casing in the settings based on the attribute.
             // i.e { "required_value": { "requiredValue":"hello" } }
 
-            json.Should().Be(@$"{{""requiredValue"":{{""requiredValue"":""hello""}}}}");
+            json.Should().Be(@$"{{""required_value"":{{""required_value"":""hello""}}}}");
             obj.Should().Be(origin);
         }
 
@@ -185,6 +191,69 @@ namespace JsonPact.System.Test {
             AssertDecodeError<JsonClass>(json, casing);
         }
 
+        [Fact]
+        public void ObjectConvertor_Constructor_Cache_Is_Used() {
+            var convertor = new ObjectConvertor();
+
+            ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }");
+
+            convertor.RequiredProps.Should().HaveCount(0);
+            convertor.RequiredParams.Should().HaveCount(1);
+
+            var required = convertor.RequiredParams.First();
+            required.Key.Should().Be(typeof(JsonRecord));
+            required.Value.Should().BeEquivalentTo(new List<string> { "RequiredValue" }.ToImmutableArray());
+        }
+
+        [Fact]
+        public void ObjectConvertor_Properties_Cache_Is_Used() {
+            var convertor = new ObjectConvertor();
+
+            ReadJson<JsonRecordDTO>(convertor, @"{ ""required_value"": ""required"" }");
+
+            convertor.RequiredParams.Should().HaveCount(0);
+            convertor.RequiredProps.Should().HaveCount(1);
+
+            var required = convertor.RequiredProps.First();
+            required.Key.Should().Be(typeof(JsonRecordDTO));
+            required.Value.Should().BeEquivalentTo(new List<string> { "RequiredValue" }.ToImmutableArray());
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_No_Matching_Key() {
+            var convertor = new ObjectConvertor();
+
+            var valid = ObjectConvertor.ValidateCache(convertor.RequiredParams, typeof(JsonRecord), new JsonRecord("hi", null));
+
+            valid.Should().Be(false);
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_Required_Satisfied() {
+            var convertor = new ObjectConvertor();
+
+            var obj = ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }")!;
+
+            var valid = ObjectConvertor.ValidateCache(convertor.RequiredParams, typeof(JsonRecord), obj);
+
+            valid.Should().Be(true);
+        }
+
+        [Fact]
+        public void Check_Cache_Hit_With_Required_Not_Satisfied() {
+            var convertor = new ObjectConvertor();
+
+            _ = ReadJson<JsonRecord>(convertor, @"{ ""required_value"": ""required"" }")!;
+
+            Action act = () => ObjectConvertor.ValidateCache(
+                convertor.RequiredParams,
+                typeof(JsonRecord),
+                new JsonRecord(null!, null)
+            );
+
+            act.Should().Throw<JsonPactDecodeException>();
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData(null)]
@@ -201,6 +270,19 @@ namespace JsonPact.System.Test {
             AssertEncodeError<JsonRecord>(null!);
             AssertEncodeError<JsonRecordDTO>(null!);
             AssertEncodeError<JsonClass>(null!);
+        }
+
+        private static T? ReadJson<T>(ObjectConvertor convertor, string json) {
+            ReadOnlySpan<byte> span = Encoding.UTF8.GetBytes(json);
+            var reader = new Utf8JsonReader(span);
+
+            object? obj = null;
+
+            while (reader.Read()) {
+                obj = convertor.Read(ref reader, typeof(T), JsonPacts.Default(JsonPactCase.Snake));
+            }
+
+            return (T?)obj;
         }
 
         private static void AssertDecodeError<T>(string? json, JsonPactCase casing = JsonPactCase.Snake) {

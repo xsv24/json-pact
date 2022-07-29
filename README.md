@@ -1,6 +1,7 @@
 [![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=csharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/core/introduction)
 
-[![NuGet](https://img.shields.io/nuget/v/JsonPact.Newtonsoft?style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
+[![JsonPact.Newtonsoft NuGet](https://img.shields.io/nuget/v/JsonPact.Newtonsoft?label=JsonPact.Newtonsoft&style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
+[![JsonPact.System NuGet](https://img.shields.io/nuget/v/JsonPact.System?label=JsonPact.System&style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.System)
 [![license](https://img.shields.io/github/license/xsv24/json-pact?color=blue&style=flat-square&logo=)](./LICENSE)
 <!---
 Once we get some downloads.
@@ -19,7 +20,7 @@ and also makes use of optional values without the need for extra attributes.
 
 💪 Extending
 - [x] [Newtonsoft](https://www.newtonsoft.com/json)
-- [ ] [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0)
+- [x] [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0)
 
 ```c#
 [JsonPact(JsonPactCase.Snake)]
@@ -55,8 +56,14 @@ You will need to enable the nullable project setting within your projects
 
 ## Install
 
+### Newtonsoft
 ```bash
 dotnet add package JsonPact.Newtonsoft
+```
+
+### System.Text.Json
+```bash
+dotnet add package JsonPact.System
 ```
 
 ## 🏎️💨 Getting Started
@@ -124,3 +131,6 @@ var snake = new Snake(new Camel(new Kebab("hello")));
 var json = pact.Serialize(snake);
 // = { "required_value": { "requiredValue": { "required-value": "hello" } } }
 ```
+
+> ⚠️ Currently nested objects with different casing while using `System.Text.Json` will not work as shown above
+> only the top level JsonPact attribute is respected but it will work perfectly with Newtonsoft.

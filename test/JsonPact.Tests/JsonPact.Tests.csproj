@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\JsonPact.Newtonsoft\JsonPact.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\src\JsonPact.System\JsonPact.System.csproj" />
     <ProjectReference Include="..\..\src\JsonPact\JsonPact.csproj" />
   </ItemGroup>
 

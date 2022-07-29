@@ -92,5 +92,11 @@ namespace JsonPact.System {
         }
 
         public static IJsonPact IntoJsonPact(this JsonSerializerOptions options) => new Serializer(options);
+
+        public static JsonPactAttribute? GetJsonPactAttribute(this Type type) =>
+            (JsonPactAttribute?)Attribute.GetCustomAttribute(type, typeof(JsonPactAttribute));
+
+        public static JsonConverter<T> GetConverter<T>(this JsonSerializerOptions options)
+            => (JsonConverter<T>)options.GetConverter(typeof(T));
     }
 }
