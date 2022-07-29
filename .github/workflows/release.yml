@@ -30,11 +30,11 @@ jobs:
       - name: Get tag
         run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 
-      - name: Pack
-        run: dotnet pack ./src/JsonPact.Newtonsoft --configuration Release --output ./newtonsoft/artifacts -p:PackageVersion=${TAG}
+      - name: Pack Newtonsoft adapter
+        run: dotnet pack ./src/JsonPact.Newtonsoft --configuration Release --output ./artifacts/newtonsoft -p:PackageVersion=${TAG}
 
-      - name: Pack
-        run: dotnet pack ./src/JsonPact.System --configuration Release --output ./system/artifacts -p:PackageVersion=${TAG}
+      - name: Pack System adapter
+        run: dotnet pack ./src/JsonPact.System --configuration Release --output ./artifacts/system -p:PackageVersion=${TAG}
 
       # Store artifacts of the release
       - uses: actions/upload-artifact@v3
