@@ -271,7 +271,7 @@ namespace JsonPact.System.Test {
             AssertEncodeError<JsonRecordDTO>(null!);
             AssertEncodeError<JsonClass>(null!);
         }
-       
+
         private static T? ReadJson<T>(ObjectConvertor convertor, string json) {
             ReadOnlySpan<byte> span = Encoding.UTF8.GetBytes(json);
             var reader = new Utf8JsonReader(span);
