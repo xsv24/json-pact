@@ -1,7 +1,7 @@
 [![.net](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=csharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/core/introduction)
 
 [![JsonPact.Newtonsoft NuGet](https://img.shields.io/nuget/v/JsonPact.Newtonsoft?label=JsonPact.Newtonsoft&style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
-[![JsonPact.System NuGet](https://img.shields.io/nuget/v/JsonPact.System?label=JsonPact.System&style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.Newtonsoft)
+[![JsonPact.System NuGet](https://img.shields.io/nuget/v/JsonPact.System?label=JsonPact.System&style=flat-square&logo=Nuget)](https://www.nuget.org/packages/JsonPact.System)
 [![license](https://img.shields.io/github/license/xsv24/json-pact?color=blue&style=flat-square&logo=)](./LICENSE)
 <!---
 Once we get some downloads.
